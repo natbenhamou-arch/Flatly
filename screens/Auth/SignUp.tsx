@@ -197,6 +197,7 @@ export default function SignUpScreen() {
                             console.log('Web date change error', err);
                           }
                         },
+                        min: '1940-01-01',
                         max: (() => {
                           const today = new Date();
                           const yyyy = String(today.getFullYear());
