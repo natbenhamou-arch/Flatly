@@ -164,7 +164,7 @@ export default function SchoolCityScreen() {
             </TouchableOpacity>
           </View>
           {showUniversityDropdown && universityResults.length > 0 && (
-            <View style={styles.dropdown}>
+            <View style={styles.dropdownRelative}>
               <FlatList
                 data={universityResults}
                 keyExtractor={(item) => item.id}
@@ -216,7 +216,7 @@ export default function SchoolCityScreen() {
               <ActivityIndicator style={styles.loadingIndicator} color={theme.colors.primary} />
             )}
             {cityResults.length > 0 && (
-              <View style={styles.dropdown}>
+              <View style={styles.dropdownRelative}>
                 <FlatList
                   data={cityResults}
                   keyExtractor={(item) => item.id}
@@ -354,16 +354,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     ...theme.shadows.input,
   },
-  dropdown: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
+  dropdownRelative: {
     backgroundColor: 'white',
     borderRadius: theme.borderRadius,
-    marginTop: 4,
-    maxHeight: 200,
-    zIndex: 1000,
+    marginTop: 8,
+    marginBottom: 16,
+    maxHeight: 240,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
     ...theme.shadows.card,
   },
   toggleRow: {
@@ -403,23 +401,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   dropdownList: {
-    maxHeight: 200,
+    maxHeight: 240,
   },
   dropdownItem: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
+    borderBottomColor: theme.colors.border + '40',
   },
   dropdownItemText: {
-    fontSize: 16,
+    fontSize: 15,
     color: theme.colors.text.primary,
-    fontWeight: '500',
+    fontWeight: '600',
+    marginBottom: 4,
   },
   dropdownItemSubtext: {
-    fontSize: 14,
+    fontSize: 13,
     color: theme.colors.text.secondary,
-    marginTop: 2,
   },
   selectedItem: {
     marginTop: 8,
