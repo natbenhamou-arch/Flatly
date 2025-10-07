@@ -18,6 +18,7 @@ export default function IndexScreen() {
   // Handle navigation when user is signed in
   useEffect(() => {
     if (!isLoading && currentUser) {
+      console.log('User detected, redirecting to app...');
       // Use setTimeout to avoid state update during render
       const timeoutId = setTimeout(() => {
         if (hasCompletedOnboarding) {

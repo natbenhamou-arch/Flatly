@@ -881,8 +881,9 @@ export default function ProfileScreen() {
                       try {
                         console.log('Logging out user...');
                         await signOut();
-                        console.log('User logged out, redirecting to home...');
-                        router.replace('/');
+                        console.log('User logged out successfully');
+                        console.log('Redirecting to sign in page...');
+                        router.replace('/signin');
                       } catch (error) {
                         console.error('Logout error:', error);
                         Alert.alert('Error', 'Failed to log out. Please try again.');
