@@ -241,7 +241,7 @@ export function ProfileDetailModal({
               <View style={styles.housingRow}>
                 <DollarSign size={16} color={colors.textSecondary} />
                 <Text style={styles.housingValue}>
-                  Budget: ${user.housing.budgetMin ?? 0} - ${user.housing.budgetMax ?? '—'} {user.housing.currency ? user.housing.currency : ''}
+                  Budget: ${user.housing.budgetMin ?? 0} - ${user.housing.budgetMax ?? '—'}{user.housing.currency ? ` ${user.housing.currency}` : ''}
                 </Text>
               </View>
             )}
