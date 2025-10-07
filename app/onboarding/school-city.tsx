@@ -174,7 +174,7 @@ export default function SchoolCityScreen() {
                     onPress={() => handleUniversitySelect(item)}
                   >
                     <Text style={styles.dropdownItemText}>{item.name}</Text>
-                    <Text style={styles.dropdownItemSubtext}>{`${item.city} • ${item.country}`}</Text>
+                    <Text style={styles.dropdownItemSubtext}>{item.city} • {item.country}</Text>
                   </TouchableOpacity>
                 )}
                 style={styles.dropdownList}
@@ -185,7 +185,7 @@ export default function SchoolCityScreen() {
           {selectedUniversity && (
             <View style={styles.selectedItem}>
               <Text style={styles.selectedItemText}>✓ {selectedUniversity.name}</Text>
-              <Text style={styles.selectedItemSubtext}>{`${selectedUniversity.city} • ${selectedUniversity.country}`}</Text>
+              <Text style={styles.selectedItemSubtext}>{selectedUniversity.city} • {selectedUniversity.country}</Text>
             </View>
           )}
         </View>
