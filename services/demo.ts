@@ -28,21 +28,23 @@ export async function setupDemoWorld(currentUserId: string): Promise<{
     if (cityUsers.length < 15) {
       console.log('Demo bootstrap: seeding more demo users...');
       if (currentUser.city === 'Paris') {
-        await seedDemoUsers({ parisCount: 20, londonCount: 0 });
+        await seedDemoUsers({ parisCount: 25, londonCount: 0 });
       } else if (currentUser.city === 'London') {
-        await seedDemoUsers({ parisCount: 0, londonCount: 20 });
+        await seedDemoUsers({ parisCount: 0, londonCount: 25 });
       } else {
-        await seedDemoUsers({ parisCount: 20, londonCount: 0 });
+        console.log(`Demo bootstrap: seeding for custom city ${currentUser.city}`);
+        await seedDemoUsers({ parisCount: 25, londonCount: 0 });
         const allAfterSeed = await getUsers();
         const seeded = allAfterSeed.filter(u => u.isDemo && u.city !== currentUser.city && u.id !== currentUserId);
         let updated = 0;
-        for (const u of seeded.slice(0, 20)) {
+        for (const u of seeded.slice(0, 25)) {
           await updateUser(u.id, { city: currentUser.city, geo: currentUser.geo });
           updated++;
         }
         console.log(`Demo bootstrap: updated ${updated} users to city ${currentUser.city}`);
       }
       cityUsers = (await getUsers()).filter(u => u.city === currentUser.city && u.id !== currentUserId && u.isDemo === true);
+      console.log(`Demo bootstrap: after seeding, now have ${cityUsers.length} demo users in ${currentUser.city}`);
     }
 
     const compatibleUsers = cityUsers.filter(u => u.photos && u.photos.length > 0);
