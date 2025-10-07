@@ -347,18 +347,15 @@ export default function ProfileScreen() {
                     </View>
                   )}
                 </TouchableOpacity>
-                <ClayButton
-                  title=""
+                <TouchableOpacity
                   onPress={() => {
                     setEditedPhotos(currentUser.photos || []);
                     setIsEditingPhotos(true);
                   }}
-                  variant="secondary"
-                  size="small"
                   style={styles.editPhotoButton}
                 >
                   <Edit3 color={colors.textPrimary} size={16} />
-                </ClayButton>
+                </TouchableOpacity>
               </View>
               
               <View style={styles.headerInfo}>
@@ -1100,7 +1097,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    padding: 0,
+    backgroundColor: colors.white,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerInfo: {
     alignItems: 'center',
