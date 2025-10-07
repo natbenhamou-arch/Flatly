@@ -20,7 +20,7 @@ import { signIn, validateEmail } from '@/services/auth';
 import { useAppStore } from '@/store/app-store';
 
 export default function SignInScreen() {
-  const { setCurrentUser } = useAppStore();
+  const { setCurrentUser, setOnboardingCompleted } = useAppStore();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -58,9 +58,25 @@ export default function SignInScreen() {
       const result = await signIn(formData.email, formData.password);
 
       if (result.success && result.user) {
-        setCurrentUser(result.user);
-        console.log('Sign in successful, navigating to discover');
-        router.replace('/(tabs)/discover');
+        await setCurrentUser(result.user);
+        
+        // Check if user has completed onboarding
+        try {
+          const { getPreferencesByUserId } = await import('@/services/data');
+          const preferences = await getPreferencesByUserId(result.user.id);
+          const hasCompletedOnboarding = !!preferences;
+          setOnboardingCompleted(hasCompletedOnboarding);
+          
+          console.log('Sign in successful, navigating...');
+          if (hasCompletedOnboarding) {
+            router.replace('/(tabs)/discover');
+          } else {
+            router.replace('/onboarding');
+          }
+        } catch (error) {
+          console.error('Error checking onboarding status:', error);
+          router.replace('/(tabs)/discover');
+        }
       } else {
         Alert.alert('Sign In Failed', result.error || 'Invalid credentials');
       }

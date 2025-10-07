@@ -879,7 +879,9 @@ export default function ProfileScreen() {
                     style: 'destructive',
                     onPress: async () => {
                       try {
+                        console.log('Logging out user...');
                         await signOut();
+                        console.log('User logged out, redirecting to home...');
                         router.replace('/');
                       } catch (error) {
                         console.error('Logout error:', error);
