@@ -136,11 +136,31 @@ export const theme = {
     info: colors.info,
   },
   typography: {
-    familyRegular: 'Montserrat-Regular',
-    familySemiBold: 'Montserrat-SemiBold',
-    weightRegular: '400' as const,
-    weightSemiBold: '600' as const,
-    weightBold: '700' as const,
+    fontFamily: {
+      regular: 'Montserrat-Regular',
+      semiBold: 'Montserrat-SemiBold',
+      bold: 'Montserrat-Bold',
+    },
+    fontSize: {
+      h1: 32,
+      h2: 28,
+      h3: 24,
+      h4: 20,
+      body: 16,
+      bodyLarge: 17,
+      small: 14,
+      tiny: 12,
+    },
+    fontWeight: {
+      regular: '400' as const,
+      medium: '600' as const,
+      bold: '700' as const,
+    },
+    lineHeight: {
+      tight: 1.2,
+      normal: 1.5,
+      relaxed: 1.75,
+    },
   },
   shadows: {
     card: shadows.card,

@@ -312,13 +312,6 @@ export default function GroupsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Group Matching</Text>
-        <Text style={styles.headerSubtitle}>
-          Find roommates together with 2-5 people
-        </Text>
-      </View>
-      
       {groups.length === 0 ? (
         <View style={styles.emptyState}>
           <Users color={colors.textSecondary} size={64} />
@@ -344,6 +337,13 @@ export default function GroupsScreen() {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
+            ListHeaderComponent={
+              <View style={styles.header}>
+                <Text style={styles.headerSubtitle}>
+                  Find roommates together with 2-5 people
+                </Text>
+              </View>
+            }
           />
           
           <TouchableOpacity
@@ -376,20 +376,17 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
+    fontFamily: 'Montserrat-Regular',
     color: colors.textSecondary,
   },
   header: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 4,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
   },
   headerSubtitle: {
     fontSize: 16,
+    fontFamily: 'Montserrat-Regular',
     color: colors.textSecondary,
   },
   listContainer: {
@@ -412,11 +409,13 @@ const styles = StyleSheet.create({
   groupName: {
     fontSize: 20,
     fontWeight: '600',
+    fontFamily: 'Montserrat-SemiBold',
     color: colors.textPrimary,
     marginBottom: 4,
   },
   groupMembers: {
     fontSize: 14,
+    fontFamily: 'Montserrat-Regular',
     color: colors.textSecondary,
   },
   compatibilityBadge: {
@@ -428,6 +427,7 @@ const styles = StyleSheet.create({
   compatibilityText: {
     fontSize: 12,
     fontWeight: '600',
+    fontFamily: 'Montserrat-SemiBold',
     color: colors.textPrimary,
   },
   membersRow: {
@@ -450,6 +450,7 @@ const styles = StyleSheet.create({
   moreMembersText: {
     fontSize: 10,
     fontWeight: '600',
+    fontFamily: 'Montserrat-SemiBold',
     color: colors.white,
   },
   groupActions: {
@@ -467,6 +468,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 14,
     fontWeight: '500',
+    fontFamily: 'Montserrat-Regular',
     color: colors.lavender,
     marginLeft: spacing.xs,
   },
@@ -495,12 +497,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: '700',
+    fontFamily: 'Montserrat-Bold',
     color: colors.textPrimary,
     marginTop: spacing.md,
     marginBottom: spacing.sm,
   },
   emptySubtitle: {
     fontSize: 16,
+    fontFamily: 'Montserrat-Regular',
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
@@ -525,6 +529,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
+    fontFamily: 'Montserrat-SemiBold',
     color: colors.textPrimary,
   },
   modalContent: {
@@ -534,6 +539,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: 'Montserrat-SemiBold',
     color: colors.textPrimary,
     marginTop: spacing.md,
     marginBottom: spacing.sm,
@@ -545,6 +551,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     fontSize: 16,
+    fontFamily: 'Montserrat-Regular',
     color: colors.textPrimary,
     marginBottom: spacing.md,
   },
@@ -571,10 +578,12 @@ const styles = StyleSheet.create({
   matchName: {
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: 'Montserrat-SemiBold',
     color: colors.textPrimary,
   },
   matchUniversity: {
     fontSize: 14,
+    fontFamily: 'Montserrat-Regular',
     color: colors.textSecondary,
   },
 });

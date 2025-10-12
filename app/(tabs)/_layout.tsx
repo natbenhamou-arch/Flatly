@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import { Heart, User, MessageCircle, Users } from "lucide-react-native";
 import React from "react";
 import { colors } from "@/constants/theme";
-import { View, Text, Image } from "react-native";
+import { BrandHeader } from "@/components/BrandHeader";
 
 export default function TabLayout() {
   return (
@@ -49,12 +49,7 @@ export default function TabLayout() {
         name="discover"
         options={{
           title: "",
-          headerTitle: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }} testID="brand-header">
-              <Image source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/344pj7718gxg1qvcgbgp1' }} style={{ width: 28, height: 32, marginRight: 8 }} resizeMode="contain" />
-              <Text style={{ fontFamily: 'Montserrat-SemiBold', marginLeft: 0, fontSize: 20, fontWeight: '800', letterSpacing: 2, color: colors.secondary }}>FLATLY</Text>
-            </View>
-          ),
+          headerTitle: () => <BrandHeader />,
           tabBarIcon: ({ color, size, focused }) => (
             <Heart 
               color={focused ? colors.primary : color} 
@@ -73,25 +68,46 @@ export default function TabLayout() {
       <Tabs.Screen
         name="matches"
         options={{
-          title: "Matches",
-          headerShown: false,
+          title: "",
+          headerTitle: () => <BrandHeader />,
+          headerShown: true,
           tabBarIcon: ({ color, size }) => <MessageCircle color={color} size={size} />,
+          headerStyle: {
+            backgroundColor: colors.background,
+            borderBottomWidth: 0,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
         }}
       />
       <Tabs.Screen
         name="groups"
         options={{
-          title: "Groups",
-          headerShown: false,
+          title: "",
+          headerTitle: () => <BrandHeader />,
+          headerShown: true,
           tabBarIcon: ({ color, size }) => <Users color={color} size={size} />,
+          headerStyle: {
+            backgroundColor: colors.background,
+            borderBottomWidth: 0,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
-          headerTitle: "My Profile",
+          title: "",
+          headerTitle: () => <BrandHeader />,
+          headerShown: true,
           tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+          headerStyle: {
+            backgroundColor: colors.background,
+            borderBottomWidth: 0,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
         }}
       />
     </Tabs>

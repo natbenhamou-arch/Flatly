@@ -159,6 +159,7 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 13,
     fontWeight: '700',
+    fontFamily: 'Montserrat-Bold',
   },
   hasPlaceBadge: {
     position: 'absolute',
@@ -175,6 +176,7 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 13,
     fontWeight: '700',
+    fontFamily: 'Montserrat-Bold',
   },
   bottomOverlay: {
     position: 'absolute',
@@ -191,12 +193,14 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 28,
     fontWeight: '800',
+    fontFamily: 'Montserrat-Bold',
     color: colors.white,
     marginRight: spacing.sm,
   },
   age: {
     fontSize: 24,
     fontWeight: '400',
+    fontFamily: 'Montserrat-Regular',
     color: colors.white,
     opacity: 0.9,
   },
@@ -210,6 +214,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
+    fontFamily: 'Montserrat-Regular',
     color: colors.white,
     fontWeight: '500',
     opacity: 0.9,
@@ -233,9 +238,11 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 13,
     fontWeight: '600',
+    fontFamily: 'Montserrat-SemiBold',
   },
   bio: {
     fontSize: 16,
+    fontFamily: 'Montserrat-Regular',
     color: colors.textPrimary,
     lineHeight: 24,
     fontWeight: '400',

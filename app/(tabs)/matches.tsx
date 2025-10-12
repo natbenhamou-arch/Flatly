@@ -202,22 +202,22 @@ export default function MatchesScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Matches</Text>
-        <Text style={styles.headerSubtitle}>
-          {matchesWithDetails.length} match{matchesWithDetails.length !== 1 ? 'es' : ''}
-          {matchesWithDetails.some(m => m.unreadCount > 0) && (
-            <Text style={styles.unreadIndicator}> • New messages</Text>
-          )}
-        </Text>
-      </View>
-      
       <FlatList
         data={matchesWithDetails}
         renderItem={renderMatch}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text style={styles.headerSubtitle}>
+              {matchesWithDetails.length} match{matchesWithDetails.length !== 1 ? 'es' : ''}
+              {matchesWithDetails.some(m => m.unreadCount > 0) && (
+                <Text style={styles.unreadIndicator}> • New messages</Text>
+              )}
+            </Text>
+          </View>
+        }
       />
       
       <MatchAnimation
@@ -236,16 +236,12 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 4,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
   },
   headerSubtitle: {
     fontSize: 16,
+    fontFamily: 'Montserrat-Regular',
     color: colors.textSecondary,
   },
   listContainer: {
@@ -285,6 +281,7 @@ const styles = StyleSheet.create({
   unreadText: {
     fontSize: 10,
     fontWeight: '700',
+    fontFamily: 'Montserrat-Bold',
     color: colors.white,
   },
   matchInfo: {
@@ -310,41 +307,50 @@ const styles = StyleSheet.create({
   compatibilityText: {
     fontSize: 10,
     fontWeight: '600',
+    fontFamily: 'Montserrat-SemiBold',
     color: colors.textPrimary,
   },
   matchName: {
     fontSize: 18,
     fontWeight: '600',
+    fontFamily: 'Montserrat-SemiBold',
     color: colors.textPrimary,
   },
   matchTime: {
     fontSize: 12,
+    fontFamily: 'Montserrat-Regular',
     color: colors.textSecondary,
   },
   matchSchool: {
     fontSize: 14,
+    fontFamily: 'Montserrat-Regular',
     color: colors.textSecondary,
     marginBottom: 4,
   },
   lastMessage: {
     fontSize: 14,
+    fontFamily: 'Montserrat-Regular',
     color: colors.textPrimary,
     lineHeight: 18,
   },
   unreadMessage: {
     fontWeight: '600',
+    fontFamily: 'Montserrat-SemiBold',
     color: colors.textPrimary,
   },
   unreadIndicator: {
     color: colors.lavender,
     fontWeight: '600',
+    fontFamily: 'Montserrat-SemiBold',
   },
   loadingText: {
     fontSize: 16,
+    fontFamily: 'Montserrat-Regular',
     color: colors.textSecondary,
   },
   newMatch: {
     fontSize: 14,
+    fontFamily: 'Montserrat-Regular',
     color: colors.lavender,
     fontWeight: '500',
     fontStyle: 'italic',
@@ -361,12 +367,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: '700',
+    fontFamily: 'Montserrat-Bold',
     color: colors.textPrimary,
     marginTop: spacing.md,
     marginBottom: spacing.sm,
   },
   emptySubtitle: {
     fontSize: 16,
+    fontFamily: 'Montserrat-Regular',
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
