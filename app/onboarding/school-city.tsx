@@ -61,8 +61,8 @@ export default function SchoolCityScreen() {
   const fetchCities = useCallback(async (q: string) => {
     try {
       setLoadingCities(true);
-      const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=8&q=${encodeURIComponent(q)}`, {
-        headers: { 'Accept': 'application/json', 'User-Agent': 'Flatly/1.0 (demo)' }
+      const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=8&accept-language=en&q=${encodeURIComponent(q)}`, {
+        headers: { 'Accept': 'application/json', 'Accept-Language': 'en', 'User-Agent': 'Flatly/1.0 (demo)' }
       });
       const data = await resp.json();
       const mapped = (data as any[]).map((item, idx) => {
@@ -152,6 +152,7 @@ export default function SchoolCityScreen() {
               }}
               onFocus={() => setShowUniversityDropdown(universityQuery.length >= 2)}
               placeholderTextColor={theme.colors.text.secondary}
+              testID="input-university"
             />
           </View>
           <View style={styles.toggleRow}>
@@ -212,6 +213,7 @@ export default function SchoolCityScreen() {
                 placeholderTextColor={theme.colors.text.secondary}
                 autoCorrect={false}
                 autoCapitalize="words"
+                testID="input-city"
               />
             </View>
             {loadingCities && (
@@ -261,6 +263,7 @@ export default function SchoolCityScreen() {
               placeholderTextColor={theme.colors.text.secondary}
               autoCorrect={false}
               autoCapitalize="words"
+              testID="input-job"
             />
           </View>
         </View>
@@ -309,6 +312,7 @@ export default function SchoolCityScreen() {
           ]}
           onPress={handleContinue}
           disabled={!city.trim() && !selectedUniversity?.city}
+          testID="button-continue"
         >
           <Text style={[
             styles.continueButtonText,
