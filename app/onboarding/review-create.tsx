@@ -8,7 +8,7 @@ import { signUp, validateEmail, validatePassword } from '@/services/auth';
 import { User, Lifestyle, Housing, Preferences } from '@/types';
 import { setLifestyle, setHousing, setPreferences } from '@/services/data';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MapPin, GraduationCap, Home, Heart, Sparkles } from 'lucide-react-native';
+import { MapPin, GraduationCap, Home, Heart, Sparkles, Briefcase } from 'lucide-react-native';
 
 export default function ReviewCreateScreen() {
   const { onboardingUser, clearOnboardingUser, setCurrentUser, setOnboardingCompleted } = useAppStore();
@@ -79,7 +79,11 @@ export default function ReviewCreateScreen() {
   const persistSubdocs = async (userId: string) => {
     try {
       if (onboardingUser.lifestyle) {
-        const lifestyle: Lifestyle = { ...(onboardingUser.lifestyle as Lifestyle), userId } as Lifestyle;
+        const lifestyle: Lifestyle = { 
+          ...(onboardingUser.lifestyle as Lifestyle), 
+          userId,
+          jobOrInternship: onboardingUser.job || onboardingUser.lifestyle.jobOrInternship || ''
+        } as Lifestyle;
         await setLifestyle(lifestyle);
       }
       if (onboardingUser.housing) {
@@ -190,6 +194,12 @@ export default function ReviewCreateScreen() {
                   <View style={styles.detailItem}>
                     <GraduationCap size={18} color={theme.colors.primary} />
                     <Text style={styles.detailText}>{onboardingUser.university}</Text>
+                  </View>
+                )}
+                {onboardingUser?.job && (
+                  <View style={styles.detailItem}>
+                    <Briefcase size={18} color={theme.colors.primary} />
+                    <Text style={styles.detailText}>{onboardingUser.job}</Text>
                   </View>
                 )}
                 {onboardingUser?.gender && (

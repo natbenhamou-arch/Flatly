@@ -23,6 +23,7 @@ interface OnboardingPartialUser {
   city?: string;
   country?: string;
   geo?: { lat: number; lng: number };
+  job?: string;
   hasRoom?: boolean;
   shortBio?: string;
   photos?: string[];

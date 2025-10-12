@@ -32,6 +32,7 @@ export default function SchoolCityScreen() {
   const [loadingCities, setLoadingCities] = useState<boolean>(false);
   const [selectedNeighborhoods, setSelectedNeighborhoods] = useState<string[]>([]);
   const [top500Only, setTop500Only] = useState<boolean>(false);
+  const [job, setJob] = useState<string>(onboardingUser?.job || '');
 
   const universityResults = useMemo(() => {
     if (!universityQuery || universityQuery.length < 2) return [] as University[];
@@ -124,6 +125,7 @@ export default function SchoolCityScreen() {
       university: selectedUniversity?.name || '',
       city: finalCity,
       country: finalCountry,
+      job: job.trim(),
     });
     router.push('./housing');
   };
@@ -244,6 +246,24 @@ export default function SchoolCityScreen() {
             </View>
           </View>
         )}
+
+        <View style={styles.section}>
+          <Text style={styles.label}>Job / Occupation</Text>
+          <Text style={styles.helperText}>
+            What do you do? (e.g., Student, Software Engineer, Marketing Intern)
+          </Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your job or occupation..."
+              value={job}
+              onChangeText={setJob}
+              placeholderTextColor={theme.colors.text.secondary}
+              autoCorrect={false}
+              autoCapitalize="words"
+            />
+          </View>
+        </View>
 
         {availableNeighborhoods.length > 0 && (
           <View style={styles.section}>
