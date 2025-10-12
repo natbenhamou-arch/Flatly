@@ -1,17 +1,25 @@
 import { User, Lifestyle, Housing, Preferences, CompatibilityResult } from '@/types';
 
 // Compatibility scoring weights (total = 100)
+// Primary factors: City, University, Language (60 points)
+// Secondary factors: Lifestyle (cleanliness, sleep, noise) (25 points)
+// Tertiary factors: Hobbies, food, politics, religion (15 points)
 const WEIGHTS = {
-  UNIVERSITY: 30,
-  SAME_CITY: 20,
-  BUDGET_FIT: 15,
-  LIFESTYLE: 15,
-  HOBBIES: 8,
-  VIBE_QUIZ: 7,
-  MOVE_IN: 3,
-  ROOM_FIT: 2,
-  RELIGION: 5, // max if opted in
-  GENDER: 5,   // max if opted in
+  SAME_CITY: 25,
+  UNIVERSITY: 20,
+  LANGUAGE: 15,
+  CLEANLINESS: 8,
+  SLEEP: 8,
+  NOISE: 9,
+  BUDGET_FIT: 8,
+  HOBBIES: 5,
+  FOOD: 3,
+  POLITICS: 2,
+  RELIGION: 3,
+  SMOKING: 2,
+  PETS: 2,
+  GUESTS: 2,
+  MOVE_IN: 2,
   BLOCKED_PENALTY: -10,
   DUPLICATE_PASS_PENALTY: -10
 } as const;
@@ -37,90 +45,132 @@ export function computeCompatibility(input: CompatibilityInput): CompatibilityRe
     targetLifestyle,
     currentHousing,
     targetHousing,
-    currentPreferences,
-    targetPreferences,
     hasBeenBlocked = false,
     hasBeenPassed = false
   } = input;
 
   let score = 0;
-  const reasons: string[] = [];
+  const reasons: { text: string; weight: number }[] = [];
 
-  // University Match (+30 for exact, +20 for same city group)
-  if (currentUser.university === targetUser.university) {
-    score += WEIGHTS.UNIVERSITY;
-    reasons.push('Same university');
-  } else if (currentUser.city === targetUser.city) {
-    score += 20; // Same city university group
-    reasons.push('Same city universities');
-  }
-
-  // Same City (+20)
+  // PRIMARY FACTORS (60 points total)
+  
+  // Same City (+25) - Most important
   if (currentUser.city === targetUser.city) {
     score += WEIGHTS.SAME_CITY;
-    reasons.push('Same city');
+    reasons.push({ text: `Both in ${currentUser.city}`, weight: WEIGHTS.SAME_CITY });
   }
 
-  // Budget Fit (+15)
-  const budgetScore = calculateBudgetFit(currentHousing, targetHousing);
-  if (budgetScore > 0) {
-    score += budgetScore;
-    if (budgetScore >= 12) {
-      reasons.push('Perfect budget match');
-    } else if (budgetScore >= 8) {
-      reasons.push('Good budget fit');
-    } else {
-      reasons.push('Budget compatible');
+  // University Match (+20)
+  if (currentUser.university === targetUser.university) {
+    score += WEIGHTS.UNIVERSITY;
+    reasons.push({ text: `Both study at ${currentUser.university}`, weight: WEIGHTS.UNIVERSITY });
+  }
+
+  // Language Compatibility (+15)
+  const languageScore = calculateLanguageCompatibility(currentLifestyle, targetLifestyle);
+  if (languageScore.score > 0) {
+    score += languageScore.score;
+    reasons.push({ text: languageScore.reason, weight: languageScore.score });
+  }
+
+  // SECONDARY FACTORS (25 points total)
+  
+  // Cleanliness Match (+8)
+  if (currentLifestyle?.cleanliness && targetLifestyle?.cleanliness) {
+    if (currentLifestyle.cleanliness === targetLifestyle.cleanliness) {
+      score += WEIGHTS.CLEANLINESS;
+      const cleanLabel = currentLifestyle.cleanliness === 'meticulous' ? 'very clean' : 
+                        currentLifestyle.cleanliness === 'avg' ? 'moderately clean' : 'relaxed about cleanliness';
+      reasons.push({ text: `Both ${cleanLabel}`, weight: WEIGHTS.CLEANLINESS });
     }
   }
 
-  // Lifestyle Similarity (+15 total, +3 each match)
-  const lifestyleScore = calculateLifestyleCompatibility(currentLifestyle, targetLifestyle);
-  if (lifestyleScore.score > 0) {
-    score += lifestyleScore.score;
-    reasons.push(...lifestyleScore.reasons);
+  // Sleep Schedule Match (+8)
+  if (currentLifestyle?.sleep && targetLifestyle?.sleep) {
+    if (currentLifestyle.sleep === targetLifestyle.sleep) {
+      score += WEIGHTS.SLEEP;
+      const sleepLabel = currentLifestyle.sleep === 'early' ? 'early birds' : 
+                        currentLifestyle.sleep === 'night' ? 'night owls' : 'flexible sleepers';
+      reasons.push({ text: `Both ${sleepLabel}`, weight: WEIGHTS.SLEEP });
+    }
   }
 
-  // Hobbies Overlap (+8)
+  // Noise Tolerance Match (+9)
+  if (currentLifestyle?.noise && targetLifestyle?.noise) {
+    if (currentLifestyle.noise === targetLifestyle.noise) {
+      score += WEIGHTS.NOISE;
+      const noiseLabel = currentLifestyle.noise === 'low' ? 'prefer quiet' : 
+                        currentLifestyle.noise === 'high' ? 'okay with noise' : 'moderate noise tolerance';
+      reasons.push({ text: `Both ${noiseLabel}`, weight: WEIGHTS.NOISE });
+    }
+  }
+
+  // Budget Fit (+8)
+  const budgetScore = calculateBudgetFit(currentHousing, targetHousing);
+  if (budgetScore.score > 0) {
+    score += budgetScore.score;
+    reasons.push({ text: budgetScore.reason, weight: budgetScore.score });
+  }
+
+  // TERTIARY FACTORS (15 points total)
+  
+  // Hobbies Overlap (+5)
   const hobbiesScore = calculateHobbiesOverlap(currentLifestyle, targetLifestyle);
   if (hobbiesScore.score > 0) {
     score += hobbiesScore.score;
-    reasons.push(hobbiesScore.reason);
+    reasons.push({ text: hobbiesScore.reason, weight: hobbiesScore.score });
   }
 
-  // Vibe Quiz Alignment (+7)
-  const vibeScore = calculateVibeQuizAlignment(currentPreferences, targetPreferences);
-  if (vibeScore > 0) {
-    score += vibeScore;
-    reasons.push('Similar lifestyle preferences');
+  // Food Preference (+3)
+  const foodScore = calculateFoodCompatibility(currentLifestyle, targetLifestyle);
+  if (foodScore.score > 0) {
+    score += foodScore.score;
+    reasons.push({ text: foodScore.reason, weight: foodScore.score });
   }
 
-  // Move-in Date Alignment (+3)
+  // Political Alignment (+2)
+  const politicsScore = calculatePoliticsCompatibility(currentLifestyle, targetLifestyle);
+  if (politicsScore.score > 0) {
+    score += politicsScore.score;
+    reasons.push({ text: politicsScore.reason, weight: politicsScore.score });
+  }
+
+  // Religion Match (+3)
+  const religionScore = calculateReligionMatch(currentLifestyle, targetLifestyle);
+  if (religionScore.score > 0) {
+    score += religionScore.score;
+    reasons.push({ text: religionScore.reason, weight: religionScore.score });
+  }
+
+  // Smoking Compatibility (+2)
+  if (currentLifestyle?.smoker !== undefined && targetLifestyle?.smoker !== undefined) {
+    if (currentLifestyle.smoker === targetLifestyle.smoker) {
+      score += WEIGHTS.SMOKING;
+      reasons.push({ text: currentLifestyle.smoker ? 'Both smoke' : 'Both non-smokers', weight: WEIGHTS.SMOKING });
+    }
+  }
+
+  // Pet Compatibility (+2)
+  if (currentLifestyle?.petsOk !== undefined && targetLifestyle?.petsOk !== undefined) {
+    if (currentLifestyle.petsOk === targetLifestyle.petsOk) {
+      score += WEIGHTS.PETS;
+      reasons.push({ text: currentLifestyle.petsOk ? 'Both pet-friendly' : 'Both prefer no pets', weight: WEIGHTS.PETS });
+    }
+  }
+
+  // Guest Frequency Match (+2)
+  if (currentLifestyle?.guests && targetLifestyle?.guests) {
+    if (currentLifestyle.guests === targetLifestyle.guests) {
+      score += WEIGHTS.GUESTS;
+      reasons.push({ text: 'Similar social habits', weight: WEIGHTS.GUESTS });
+    }
+  }
+
+  // Move-in Date Alignment (+2)
   const moveInScore = calculateMoveInAlignment(currentHousing, targetHousing);
   if (moveInScore > 0) {
     score += moveInScore;
-    reasons.push('Similar move-in timing');
-  }
-
-  // Room Fit (+2)
-  const roomFitScore = calculateRoomFit(currentUser, targetUser);
-  if (roomFitScore > 0) {
-    score += roomFitScore;
-    reasons.push('Perfect housing match');
-  }
-
-  // Optional Religion Match (up to +5)
-  const religionScore = calculateReligionMatch(currentLifestyle, targetLifestyle);
-  if (religionScore > 0) {
-    score += religionScore;
-    reasons.push('Shared values');
-  }
-
-  // Optional Gender Preference (up to +5)
-  const genderScore = calculateGenderPreference(currentLifestyle, targetLifestyle);
-  if (genderScore > 0) {
-    score += genderScore;
-    reasons.push('Preferred demographics');
+    reasons.push({ text: 'Similar move-in dates', weight: moveInScore });
   }
 
   // Penalties
@@ -135,11 +185,17 @@ export function computeCompatibility(input: CompatibilityInput): CompatibilityRe
   // Ensure score is within bounds
   score = Math.max(0, Math.min(100, Math.round(score)));
 
-  return { score, reasons };
+  // Sort reasons by weight and take top 3
+  const topReasons = reasons
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, 3)
+    .map(r => r.text);
+
+  return { score, reasons: topReasons };
 }
 
-function calculateBudgetFit(currentHousing?: Housing, targetHousing?: Housing): number {
-  if (!currentHousing || !targetHousing) return 0;
+function calculateBudgetFit(currentHousing?: Housing, targetHousing?: Housing): { score: number; reason: string } {
+  if (!currentHousing || !targetHousing) return { score: 0, reason: '' };
 
   // Case 1: One has room, other needs room
   if (currentHousing.hasRoom && !targetHousing.hasRoom) {
@@ -150,8 +206,8 @@ function calculateBudgetFit(currentHousing?: Housing, targetHousing?: Housing): 
     if (rent >= minBudget && rent <= maxBudget) {
       const budgetRange = maxBudget - minBudget;
       const position = (rent - minBudget) / budgetRange;
-      // Best fit is in the middle of their range
-      return WEIGHTS.BUDGET_FIT * (1 - Math.abs(position - 0.5) * 2);
+      const score = WEIGHTS.BUDGET_FIT * (1 - Math.abs(position - 0.5) * 2);
+      return { score, reason: 'Budget matches perfectly' };
     }
   }
 
@@ -168,55 +224,39 @@ function calculateBudgetFit(currentHousing?: Housing, targetHousing?: Housing): 
     if (overlapMax > overlapMin) {
       const overlapSize = overlapMax - overlapMin;
       const totalRange = Math.max(currentMax - currentMin, targetMax - targetMin);
-      return WEIGHTS.BUDGET_FIT * (overlapSize / totalRange);
+      const score = WEIGHTS.BUDGET_FIT * (overlapSize / totalRange);
+      return { score, reason: 'Similar budget range' };
     }
   }
 
-  return 0;
+  return { score: 0, reason: '' };
 }
 
-function calculateLifestyleCompatibility(
+function calculateLanguageCompatibility(
   currentLifestyle?: Lifestyle,
   targetLifestyle?: Lifestyle
-): { score: number; reasons: string[] } {
+): { score: number; reason: string } {
   if (!currentLifestyle || !targetLifestyle) {
-    return { score: 0, reasons: [] };
+    return { score: 0, reason: '' };
   }
 
-  let score = 0;
-  const reasons: string[] = [];
+  // Extract languages from dietary or other fields (simplified)
+  // In a real app, you'd have a dedicated languages field
+  // For now, we'll give partial points if they share hobbies that indicate language
+  const currentHobbies = new Set(currentLifestyle.hobbies || []);
+  const targetHobbies = new Set(targetLifestyle.hobbies || []);
+  
+  const languageIndicators = ['languages', 'travel', 'books', 'films'];
+  const sharedLanguageInterests = languageIndicators.filter(indicator => 
+    currentHobbies.has(indicator) && targetHobbies.has(indicator)
+  );
 
-  // Cleanliness match (+3)
-  if (currentLifestyle.cleanliness === targetLifestyle.cleanliness) {
-    score += 3;
-    reasons.push(`Both ${currentLifestyle.cleanliness} about cleanliness`);
+  if (sharedLanguageInterests.length > 0) {
+    return { score: WEIGHTS.LANGUAGE, reason: 'Share language interests' };
   }
 
-  // Sleep schedule match (+3)
-  if (currentLifestyle.sleep === targetLifestyle.sleep) {
-    score += 3;
-    reasons.push(`Both ${currentLifestyle.sleep} sleepers`);
-  }
-
-  // Guest frequency match (+3)
-  if (currentLifestyle.guests === targetLifestyle.guests) {
-    score += 3;
-    reasons.push('Similar social preferences');
-  }
-
-  // Smoking compatibility (+3)
-  if (currentLifestyle.smoker === targetLifestyle.smoker) {
-    score += 3;
-    reasons.push(currentLifestyle.smoker ? 'Both smoke' : 'Both non-smokers');
-  }
-
-  // Pet compatibility (+3)
-  if (currentLifestyle.petsOk === targetLifestyle.petsOk) {
-    score += 3;
-    reasons.push(currentLifestyle.petsOk ? 'Both pet-friendly' : 'Both prefer no pets');
-  }
-
-  return { score, reasons };
+  // Default: assume same language if in same city
+  return { score: WEIGHTS.LANGUAGE * 0.5, reason: 'Can communicate easily' };
 }
 
 function calculateHobbiesOverlap(
@@ -227,8 +267,8 @@ function calculateHobbiesOverlap(
     return { score: 0, reason: '' };
   }
 
-  const currentHobbies = new Set(currentLifestyle.hobbies);
-  const targetHobbies = new Set(targetLifestyle.hobbies);
+  const currentHobbies = new Set(currentLifestyle.hobbies || []);
+  const targetHobbies = new Set(targetLifestyle.hobbies || []);
   
   const intersection = new Set([...currentHobbies].filter(h => targetHobbies.has(h)));
   const union = new Set([...currentHobbies, ...targetHobbies]);
@@ -240,42 +280,53 @@ function calculateHobbiesOverlap(
 
   let reason = '';
   if (intersection.size >= 3) {
-    reason = `${intersection.size} shared interests`;
+    reason = `Share ${intersection.size} hobbies`;
   } else if (intersection.size >= 1) {
-    const sharedHobbies = Array.from(intersection).slice(0, 2).join(', ');
+    const sharedHobbies = Array.from(intersection).slice(0, 2).join(' & ');
     reason = `Both enjoy ${sharedHobbies}`;
   }
 
   return { score, reason };
 }
 
-function calculateVibeQuizAlignment(
-  currentPreferences?: Preferences,
-  targetPreferences?: Preferences
-): number {
-  if (!currentPreferences || !targetPreferences) return 0;
-
-  const currentAnswers = currentPreferences.quizAnswers || {};
-  const targetAnswers = targetPreferences.quizAnswers || {};
-
-  let matches = 0;
-  let total = 0;
-
-  // Compare common quiz answers
-  const commonKeys = Object.keys(currentAnswers).filter(key => 
-    key in targetAnswers
-  );
-
-  for (const key of commonKeys) {
-    total++;
-    if (currentAnswers[key] === targetAnswers[key]) {
-      matches++;
-    }
+function calculateFoodCompatibility(
+  currentLifestyle?: Lifestyle,
+  targetLifestyle?: Lifestyle
+): { score: number; reason: string } {
+  if (!currentLifestyle || !targetLifestyle) {
+    return { score: 0, reason: '' };
   }
 
-  if (total === 0) return 0;
+  const currentFood = currentLifestyle.foodPreference;
+  const targetFood = targetLifestyle.foodPreference;
 
-  return WEIGHTS.VIBE_QUIZ * (matches / total);
+  if (currentFood && targetFood && currentFood === targetFood) {
+    const foodLabel = currentFood === 'vegetarian' ? 'vegetarian' :
+                     currentFood === 'vegan' ? 'vegan' :
+                     currentFood === 'halal' ? 'halal' :
+                     currentFood === 'kosher' ? 'kosher' : 'similar diet';
+    return { score: WEIGHTS.FOOD, reason: `Both ${foodLabel}` };
+  }
+
+  return { score: 0, reason: '' };
+}
+
+function calculatePoliticsCompatibility(
+  currentLifestyle?: Lifestyle,
+  targetLifestyle?: Lifestyle
+): { score: number; reason: string } {
+  if (!currentLifestyle || !targetLifestyle) {
+    return { score: 0, reason: '' };
+  }
+
+  const currentPolitics = currentLifestyle.politicalView;
+  const targetPolitics = targetLifestyle.politicalView;
+
+  if (currentPolitics && targetPolitics && currentPolitics === targetPolitics) {
+    return { score: WEIGHTS.POLITICS, reason: 'Similar political views' };
+  }
+
+  return { score: 0, reason: '' };
 }
 
 function calculateMoveInAlignment(
@@ -295,48 +346,23 @@ function calculateMoveInAlignment(
   return 0;
 }
 
-function calculateRoomFit(currentUser: User, targetUser: User): number {
-  // Perfect fit: one has room, other needs room
-  if (currentUser.hasRoom && !targetUser.hasRoom) {
-    return WEIGHTS.ROOM_FIT;
-  }
-  if (!currentUser.hasRoom && targetUser.hasRoom) {
-    return WEIGHTS.ROOM_FIT;
-  }
-  return 0;
-}
-
 function calculateReligionMatch(
   currentLifestyle?: Lifestyle,
   targetLifestyle?: Lifestyle
-): number {
-  if (!currentLifestyle || !targetLifestyle) return 0;
+): { score: number; reason: string } {
+  if (!currentLifestyle || !targetLifestyle) return { score: 0, reason: '' };
 
   // Only apply if both users opted to show religion
-  if (!currentLifestyle.showReligion || !targetLifestyle.showReligion) return 0;
+  if (!currentLifestyle.showReligion || !targetLifestyle.showReligion) return { score: 0, reason: '' };
 
   // Only apply if both have religion specified
-  if (!currentLifestyle.religion || !targetLifestyle.religion) return 0;
+  if (!currentLifestyle.religion || !targetLifestyle.religion) return { score: 0, reason: '' };
 
   if (currentLifestyle.religion === targetLifestyle.religion) {
-    return WEIGHTS.RELIGION;
+    return { score: WEIGHTS.RELIGION, reason: 'Share religious values' };
   }
 
-  return 0;
-}
-
-function calculateGenderPreference(
-  currentLifestyle?: Lifestyle,
-  targetLifestyle?: Lifestyle
-): number {
-  if (!currentLifestyle || !targetLifestyle) return 0;
-
-  // Only apply if both users opted to show gender
-  if (!currentLifestyle.showGender || !targetLifestyle.showGender) return 0;
-
-  // This is a simplified implementation
-  // In a real app, you'd have more complex gender preference logic
-  return WEIGHTS.GENDER * 0.5; // Partial score for showing gender preference
+  return { score: 0, reason: '' };
 }
 
 // Utility function to get compatibility explanation

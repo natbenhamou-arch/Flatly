@@ -98,18 +98,32 @@ export function UserCard({ user, showCompatibilityScore, onCompatibilityPress, o
         </View>
         
         <View style={styles.content}>
-          <View style={styles.chipsContainer}>
-            {getLifestyleChips().slice(0, 3).map((chip, index) => (
-              <View key={chip} style={[styles.chip, { backgroundColor: gradients.primary[index % 2] + '20' }]}>
-                <Text style={[styles.chipText, { color: gradients.primary[index % 2] }]}>{chip}</Text>
+          {showCompatibilityScore && user.compatibility && user.compatibility.reasons && user.compatibility.reasons.length > 0 ? (
+            <View style={styles.compatibilitySection}>
+              <Text style={styles.compatibilityTitle}>Why you match:</Text>
+              {user.compatibility.reasons.map((reason, index) => (
+                <View key={`reason-${index}`} style={styles.reasonRow}>
+                  <Text style={styles.reasonBullet}>•</Text>
+                  <Text style={styles.reasonText}>{reason}</Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View>
+              <View style={styles.chipsContainer}>
+                {getLifestyleChips().slice(0, 3).map((chip, index) => (
+                  <View key={chip} style={[styles.chip, { backgroundColor: gradients.primary[index % 2] + '20' }]}>
+                    <Text style={[styles.chipText, { color: gradients.primary[index % 2] }]}>{chip}</Text>
+                  </View>
+                ))}
               </View>
-            ))}
-          </View>
-          
-          {user.shortBio && (
-            <Text style={styles.bio} numberOfLines={2}>
-              {user.shortBio}
-            </Text>
+              
+              {user.shortBio && (
+                <Text style={styles.bio} numberOfLines={2}>
+                  {user.shortBio}
+                </Text>
+              )}
+            </View>
           )}
         </View>
       </ClayCard>
@@ -249,5 +263,35 @@ const styles = StyleSheet.create({
   },
   infoIcon: {
     marginLeft: 4,
+  },
+  compatibilitySection: {
+    gap: spacing.sm,
+  },
+  compatibilityTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    fontFamily: 'Montserrat-Bold',
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  reasonRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  reasonBullet: {
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: 'Montserrat-Bold',
+    color: colors.lavender,
+    lineHeight: 22,
+  },
+  reasonText: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: 'Montserrat-Regular',
+    color: colors.textSecondary,
+    lineHeight: 22,
+    fontWeight: '500',
   },
 });
