@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Switch, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Switch, KeyboardAvoidingView, Platform, PanResponder, LayoutChangeEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { theme } from '@/constants/theme';
@@ -12,8 +12,51 @@ export default function VibeScreen() {
   const [religion, setReligion] = useState<string>(onboardingUser?.lifestyle?.religion ?? '');
   const [showReligion, setShowReligion] = useState<boolean>(onboardingUser?.lifestyle?.showReligion ?? false);
   const [politicalView, setPoliticalView] = useState<Lifestyle['politicalView']>(onboardingUser?.lifestyle?.politicalView ?? undefined);
+  const [showPoliticalView, setShowPoliticalView] = useState<boolean>(onboardingUser?.lifestyle?.showPoliticalView ?? false);
   const [religiousChoice, setReligiousChoice] = useState<Lifestyle['religiousChoice']>(onboardingUser?.lifestyle?.religiousChoice ?? undefined);
   const [moneyStyle, setMoneyStyle] = useState<Lifestyle['moneyStyle']>(onboardingUser?.lifestyle?.moneyStyle ?? undefined);
+
+  const initialPoliticalIndex = useMemo(() => {
+    switch (politicalView) {
+      case 'progressive':
+        return 0;
+      case 'centrist':
+        return 1;
+      case 'conservative':
+        return 2;
+      default:
+        return 1;
+    }
+  }, [politicalView]);
+
+  const [politicsIndex, setPoliticsIndex] = useState<number>(initialPoliticalIndex);
+  const [trackWidth, setTrackWidth] = useState<number>(0);
+  const onTrackLayout = (e: LayoutChangeEvent) => {
+    setTrackWidth(e.nativeEvent.layout.width);
+  };
+
+  const panResponder = useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (evt) => {
+      const x = (evt.nativeEvent as any).locationX as number;
+      const w = trackWidth || 1;
+      const ratio = Math.max(0, Math.min(1, x / w));
+      const idx = ratio < 0.33 ? 0 : ratio < 0.66 ? 1 : 2;
+      setPoliticsIndex(idx);
+    },
+    onPanResponderMove: (evt) => {
+      const x = (evt.nativeEvent as any).locationX as number;
+      const w = trackWidth || 1;
+      const ratio = Math.max(0, Math.min(1, x / w));
+      const idx = ratio < 0.33 ? 0 : ratio < 0.66 ? 1 : 2;
+      setPoliticsIndex(idx);
+    },
+    onPanResponderRelease: () => {
+      const map: Lifestyle['politicalView'][] = ['progressive', 'centrist', 'conservative'];
+      setPoliticalView(map[politicsIndex]);
+    },
+  }), [politicsIndex, trackWidth]);
 
   const handleContinue = () => {
     updateOnboardingUser({ 
@@ -22,6 +65,7 @@ export default function VibeScreen() {
         religion: religion.trim() || undefined,
         showReligion,
         politicalView,
+        showPoliticalView,
         religiousChoice,
         moneyStyle,
       }
@@ -40,19 +84,17 @@ export default function VibeScreen() {
           </Text>
           
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Religion (Optional) 🙏</Text>
-            
+            <Text style={styles.sectionTitle}>Religion (Optional)</Text>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Religion</Text>
+              <Text style={styles.label}>Add an optional clarification</Text>
               <TextInput
                 style={styles.input}
                 value={religion}
                 onChangeText={setReligion}
-                placeholder="e.g., Christian, Muslim, Hindu, etc."
+                placeholder="e.g., Catholic, Muslim, Hindu, Spiritual, etc."
                 placeholderTextColor={theme.colors.text.secondary}
               />
             </View>
-            
             <View style={styles.switchRow}>
               <Text style={styles.switchLabel}>Show religion in my profile</Text>
               <Switch
@@ -65,7 +107,7 @@ export default function VibeScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>How religious are you? 🙏</Text>
+            <Text style={styles.sectionTitle}>Are you religious?</Text>
             <View style={styles.dotsContainer}>
               {[
                 { key: 'yes', label: 'Yes', color: '#74b9ff' },
@@ -95,35 +137,30 @@ export default function VibeScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Political view 🗳️</Text>
-            <View style={styles.arrowContainer}>
-              {[
-                { key: 'conservative', label: 'Conservative', emoji: '🔵' },
-                { key: 'progressive', label: 'Progressive', emoji: '🟢' },
-                { key: 'centrist', label: 'Centrist', emoji: '⚪' },
-                { key: 'ecological', label: 'Ecological', emoji: '🌱' },
-                { key: 'apolitical', label: 'Apolitical', emoji: '🤷' },
-              ].map((opt, index) => (
-                <View key={opt.key} style={styles.arrowItem}>
-                  <TouchableOpacity
-                    style={[
-                      styles.arrowButton,
-                      politicalView === (opt.key as Lifestyle['politicalView']) && styles.arrowButtonSelected
-                    ]}
-                    onPress={() => setPoliticalView(opt.key as Lifestyle['politicalView'])}
-                    testID={`politics-${opt.key}`}
-                  >
-                    <Text style={styles.arrowEmoji}>{opt.emoji}</Text>
-                    <Text style={[
-                      styles.arrowText,
-                      politicalView === (opt.key as Lifestyle['politicalView']) && styles.arrowTextSelected
-                    ]}>
-                      {opt.label}
-                    </Text>
-                  </TouchableOpacity>
-                  {index < 4 && <Text style={styles.arrowSeparator}>→</Text>}
+            <Text style={styles.sectionTitle}>Politics</Text>
+            <View style={styles.sliderContainer}>
+              <View style={styles.sliderTrack} onLayout={onTrackLayout} {...panResponder.panHandlers} testID="politics-slider">
+                <View style={styles.sliderTickRow} pointerEvents="none">
+                  {[0, 1, 2].map((i) => (
+                    <View key={`tick-${i}`} style={[styles.tick, politicsIndex === i && styles.tickActive]} />
+                  ))}
                 </View>
-              ))}
+                <View style={[styles.knob, { left: Math.max(0, trackWidth > 0 ? 12 + ((trackWidth - 24) * (politicsIndex / 2)) - 14 : 0) }]} />
+              </View>
+              <View style={styles.sliderLabels}>
+                <Text style={styles.sliderLabelLeft}>Progressive</Text>
+                <Text style={styles.sliderLabelCenter}>Center</Text>
+                <Text style={styles.sliderLabelRight}>Conservative</Text>
+              </View>
+            </View>
+            <View style={styles.switchRow}>
+              <Text style={styles.switchLabel}>Show political view in my profile</Text>
+              <Switch
+                value={showPoliticalView}
+                onValueChange={setShowPoliticalView}
+                trackColor={{ false: theme.colors.text.secondary + '40', true: theme.colors.primary + '80' }}
+                thumbColor={showPoliticalView ? theme.colors.primary : '#f4f3f4'}
+              />
             </View>
           </View>
 
@@ -264,48 +301,58 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
     fontWeight: '600',
   },
-  arrowContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
+  sliderContainer: {
     gap: 8,
   },
-  arrowItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  arrowButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 20,
+  sliderTrack: {
+    position: 'relative',
+    height: 36,
+    borderRadius: 18,
     backgroundColor: theme.colors.surface,
     borderWidth: 2,
     borderColor: theme.colors.text.secondary + '30',
-    gap: 6,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
   },
-  arrowButtonSelected: {
-    backgroundColor: theme.colors.primary + '15',
-    borderColor: theme.colors.primary,
+  sliderTickRow: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  arrowEmoji: {
-    fontSize: 16,
+  tick: {
+    width: 2,
+    height: 12,
+    backgroundColor: theme.colors.text.secondary + '50',
   },
-  arrowText: {
-    fontSize: 13,
+  tickActive: {
+    backgroundColor: theme.colors.primary,
+  },
+  knob: {
+    position: 'absolute',
+    top: 4,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: theme.colors.primary,
+  },
+  sliderLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  sliderLabelLeft: {
+    fontSize: 12,
     color: theme.colors.text.secondary,
-    fontWeight: '500',
   },
-  arrowTextSelected: {
-    color: theme.colors.primary,
-    fontWeight: '600',
+  sliderLabelCenter: {
+    fontSize: 12,
+    color: theme.colors.text.secondary,
   },
-  arrowSeparator: {
-    fontSize: 16,
-    color: theme.colors.text.secondary + '60',
-    marginHorizontal: 4,
+  sliderLabelRight: {
+    fontSize: 12,
+    color: theme.colors.text.secondary,
   },
   emojiCardsContainer: {
     flexDirection: 'row',

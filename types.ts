@@ -54,6 +54,7 @@ export interface Lifestyle {
   // New richer vibe fields
   politicalView?: 'conservative' | 'progressive' | 'centrist' | 'ecological' | 'apolitical';
   religiousChoice?: 'yes' | 'no' | 'prefer_not';
+  showPoliticalView?: boolean;
   moneyStyle?: 'meticulous' | 'balanced' | 'loose';
   foodPreference?: 'omnivore' | 'vegetarian' | 'vegan' | 'halal' | 'kosher' | 'other';
   foodOther?: string;

@@ -300,6 +300,25 @@ export function ProfileDetailModal({
             <Text style={styles.lifestyleLabel}>Noise Level</Text>
             <Text style={styles.lifestyleValue}>{user.lifestyle.noise}</Text>
           </View>
+
+          {user.lifestyle.showReligion && (user.lifestyle.religiousChoice || user.lifestyle.religion) && (
+            <View style={styles.lifestyleItem}>
+              <Text style={styles.lifestyleLabel}>Religion</Text>
+              <Text style={styles.lifestyleValue}>
+                {user.lifestyle.religiousChoice === 'yes' ? 'Religious' : user.lifestyle.religiousChoice === 'no' ? 'Not religious' : 'Prefer not to say'}
+                {user.lifestyle.religion ? ` • ${user.lifestyle.religion}` : ''}
+              </Text>
+            </View>
+          )}
+
+          {user.lifestyle.showPoliticalView && user.lifestyle.politicalView && (
+            <View style={styles.lifestyleItem}>
+              <Text style={styles.lifestyleLabel}>Politics</Text>
+              <Text style={styles.lifestyleValue}>
+                {user.lifestyle.politicalView === 'progressive' ? 'Progressive' : user.lifestyle.politicalView === 'centrist' ? 'Center' : user.lifestyle.politicalView === 'conservative' ? 'Conservative' : user.lifestyle.politicalView}
+              </Text>
+            </View>
+          )}
         </View>
         
         {user.lifestyle.hobbies && user.lifestyle.hobbies.length > 0 && (
