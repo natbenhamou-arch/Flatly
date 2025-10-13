@@ -8,13 +8,7 @@ import { Housing } from '@/types';
 import { getHousingByUserId, setHousing as saveHousing } from '@/services/data';
 import { CURRENCIES, DEFAULT_CURRENCY } from '@/constants/currencies';
 import { ChevronDown, Calendar } from 'lucide-react-native';
-
-const NEIGHBORHOODS = [
-  'Downtown', 'University District', 'Midtown', 'Uptown', 'Old Town',
-  'Arts District', 'Financial District', 'Riverside', 'Hillside', 'Suburbs', 'Other'
-] as const;
-
-type NeighborhoodOption = typeof NEIGHBORHOODS[number];
+import { getNeighborhoods } from '@/mocks/universities';
 
 export default function HousingScreen() {
   const params = useLocalSearchParams<{ edit?: string }>();
@@ -30,6 +24,7 @@ export default function HousingScreen() {
   const [availableFrom, setAvailableFrom] = useState<string>(onboardingUser?.housing?.availableFrom ?? '');
   const [availableTo, setAvailableTo] = useState<string>(onboardingUser?.housing?.availableTo ?? '');
   const [isOwner, setIsOwner] = useState<boolean>(onboardingUser?.housing?.isOwner ?? false);
+  const [apartmentDescription, setApartmentDescription] = useState<string>(onboardingUser?.housing?.apartmentDescription ?? '');
   const [rentCurrency, setRentCurrency] = useState<string>(onboardingUser?.housing?.currency ?? DEFAULT_CURRENCY);
   const [showRentCurrencyDropdown, setShowRentCurrencyDropdown] = useState<boolean>(false);
   
@@ -44,30 +39,45 @@ export default function HousingScreen() {
   const [wantedTo, setWantedTo] = useState<string>(onboardingUser?.housing?.wantedTo ?? '');
   const [customNeighborhood, setCustomNeighborhood] = useState<string>('');
 
+  const cityName = onboardingUser?.city ?? '';
+
+  const cityNeighborhoods = useMemo<string[]>(() => {
+    try {
+      const list = getNeighborhoods(cityName) ?? [];
+      const unique = Array.from(new Set(list.filter(Boolean).map((n) => n.trim())));
+      return unique.length > 0 ? [...unique, 'Other'] : [];
+    } catch (e) {
+      console.log('Compute cityNeighborhoods error', e);
+      return [];
+    }
+  }, [cityName]);
+
   useEffect(() => {
     try {
       const initialTargets: string[] = targetNeighborhoods;
-      const knownSet = new Set<NeighborhoodOption>(NEIGHBORHOODS);
-      const custom = initialTargets.find((n) => !knownSet.has(n as NeighborhoodOption));
+      const knownSet = new Set<string>(cityNeighborhoods);
+      const custom = initialTargets.find((n) => !knownSet.has(n));
       if (custom) {
         if (!customNeighborhood) setCustomNeighborhood(custom);
-        if (!initialTargets.includes('Other')) {
+        if (!initialTargets.includes('Other') && cityNeighborhoods.includes('Other')) {
           setTargetNeighborhoods((prev) => [...prev, 'Other']);
         }
       }
     } catch (e) {
       console.log('Init custom neighborhood failed', e);
     }
-  }, [targetNeighborhoods, customNeighborhood]);
+  }, [targetNeighborhoods, customNeighborhood, cityNeighborhoods]);
 
-  const toggleNeighborhood = (hood: NeighborhoodOption) => {
-    if (targetNeighborhoods.includes(hood)) {
-      setTargetNeighborhoods(prev => prev.filter(n => n !== hood));
-      if (hood === 'Other') {
+  const toggleNeighborhood = (hood: string) => {
+    const value = hood.trim();
+    if (!value) return;
+    if (targetNeighborhoods.includes(value)) {
+      setTargetNeighborhoods(prev => prev.filter(n => n !== value));
+      if (value === 'Other') {
         setCustomNeighborhood('');
       }
     } else {
-      setTargetNeighborhoods(prev => [...prev, hood]);
+      setTargetNeighborhoods(prev => [...prev, value]);
     }
   };
 
@@ -86,6 +96,7 @@ export default function HousingScreen() {
             setAvailableFrom(existing.availableFrom ?? '');
             setAvailableTo(existing.availableTo ?? '');
             setIsOwner(existing.isOwner ?? false);
+            setApartmentDescription(existing.apartmentDescription ?? '');
             setRentCurrency(existing.currency ?? DEFAULT_CURRENCY);
             setBudgetMin(existing.budgetMin?.toString() ?? '');
             setBudgetMax(existing.budgetMax?.toString() ?? '');
@@ -130,6 +141,7 @@ export default function HousingScreen() {
         availableFrom: availableFrom || undefined,
         availableTo: availableTo || undefined,
         isOwner,
+        apartmentDescription: apartmentDescription || undefined,
       } : {
         budgetMin: budgetMin ? parseFloat(budgetMin) : undefined,
         budgetMax: budgetMax ? parseFloat(budgetMax) : undefined,
@@ -154,6 +166,7 @@ export default function HousingScreen() {
           availableFrom: housingData.availableFrom,
           availableTo: housingData.availableTo,
           isOwner: housingData.isOwner,
+          apartmentDescription: housingData.apartmentDescription,
           budgetMin: housingData.budgetMin,
           budgetMax: housingData.budgetMax,
           currency: housingData.currency ?? DEFAULT_CURRENCY,
@@ -227,11 +240,59 @@ export default function HousingScreen() {
             
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Neighborhood</Text>
+              {cityNeighborhoods.length > 0 ? (
+                <View style={styles.chipContainer}>
+                  {cityNeighborhoods.map((hood) => (
+                    <TouchableOpacity
+                      key={hood}
+                      style={[styles.chip, neighborhood === hood && styles.chipSelected]}
+                      onPress={() => {
+                        if (hood === 'Other') {
+                          setNeighborhood('');
+                        } else {
+                          setNeighborhood(hood);
+                        }
+                      }}
+                    >
+                      <Text style={[styles.chipText, neighborhood === hood && styles.chipTextSelected]}>
+                        {hood}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : (
+                <TextInput
+                  style={styles.input}
+                  value={neighborhood}
+                  onChangeText={setNeighborhood}
+                  placeholder="e.g., University District"
+                  placeholderTextColor={theme.colors.text.secondary}
+                />
+              )}
+              {cityNeighborhoods.includes('Other') && neighborhood === '' && (
+                <View style={styles.customNeighborhoodContainer}>
+                  <TextInput
+                    testID="owner-custom-neighborhood-input"
+                    style={styles.input}
+                    value={neighborhood}
+                    onChangeText={setNeighborhood}
+                    placeholder="Enter neighborhood name"
+                    placeholderTextColor={theme.colors.text.secondary}
+                  />
+                </View>
+              )}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Apartment description (optional)</Text>
               <TextInput
-                style={styles.input}
-                value={neighborhood}
-                onChangeText={setNeighborhood}
-                placeholder="e.g., University District"
+                style={[styles.input, styles.textArea]}
+                value={apartmentDescription}
+                onChangeText={setApartmentDescription}
+                placeholder="e.g., Large bright room, shared kitchen"
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
                 placeholderTextColor={theme.colors.text.secondary}
               />
             </View>
@@ -433,8 +494,11 @@ export default function HousingScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label} testID="preferred-neighborhoods-label">Preferred Neighborhoods</Text>
+              {cityNeighborhoods.length === 0 ? (
+                <Text style={styles.helperText}>No predefined neighborhoods for {cityName || 'your city'}. You can continue without selecting.</Text>
+              ) : null}
               <View style={styles.chipContainer}>
-                {NEIGHBORHOODS.map((hood) => (
+                {cityNeighborhoods.map((hood) => (
                   <TouchableOpacity
                     testID={`chip-${hood}`}
                     key={hood}
@@ -604,6 +668,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: theme.colors.text.primary,
     marginBottom: 8,
+  },
+  helperText: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+    marginBottom: 12,
   },
   input: {
     paddingVertical: 16,

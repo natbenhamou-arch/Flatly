@@ -68,6 +68,7 @@ export interface Housing {
   availableFrom?: string;
   availableTo?: string;
   isOwner?: boolean;
+  apartmentDescription?: string;
   roomPhotos?: string[];
   // If needs room:
   budgetMin?: number;

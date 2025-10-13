@@ -179,6 +179,12 @@ export const UNIVERSITIES: University[] = [
 
 // Common neighborhoods by city
 export const NEIGHBORHOODS_BY_CITY: Record<string, string[]> = {
+  'London': [
+    'Camden', 'Islington', 'Hackney', 'Shoreditch', 'Notting Hill', 'Kensington', 'Chelsea', 'Clapham', 'Brixton', 'Greenwich', 'Canary Wharf', 'Southwark', 'Hammersmith', 'Fulham', 'Wimbledon'
+  ],
+  'Paris': [
+    'Le Marais', 'Latin Quarter', 'Montmartre', 'Bastille', 'Canal Saint-Martin', 'Belleville', 'Saint-Germain-des-Prés', 'Batignolles', 'Oberkampf', 'Nation'
+  ],
   'Berkeley': [
     'North Berkeley', 'South Berkeley', 'West Berkeley', 'Downtown Berkeley',
     'Elmwood', 'Claremont', 'Thousand Oaks', 'Southside'
