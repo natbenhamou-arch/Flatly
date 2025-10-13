@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, KeyboardAvoidingView, Platform, PanResponder, LayoutChangeEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { theme } from '@/constants/theme';
@@ -14,13 +14,14 @@ const COOKING_QUESTION = {
 
 export default function LifestyleScreen() {
   const { onboardingUser, updateOnboardingUser } = useAppStore();
-  
-  const [cleanliness, setCleanliness] = useState<'chill' | 'avg' | 'meticulous'>(onboardingUser?.lifestyle?.cleanliness ?? 'avg');
-  const [sleep, setSleep] = useState<'early' | 'flex' | 'night'>(onboardingUser?.lifestyle?.sleep ?? 'flex');
+
+  const [cleanlinessScore, setCleanlinessScore] = useState<number>(onboardingUser?.lifestyle?.cleanlinessScore ?? 5);
+  const [sleepRhythmScore, setSleepRhythmScore] = useState<number>(onboardingUser?.lifestyle?.sleepRhythmScore ?? 5);
+  const [guestsScore, setGuestsScore] = useState<number>(onboardingUser?.lifestyle?.guestsScore ?? 5);
+  const [noiseLevelScore, setNoiseLevelScore] = useState<number>(onboardingUser?.lifestyle?.noiseLevelScore ?? 5);
+
   const [smoker, setSmoker] = useState<boolean>(onboardingUser?.lifestyle?.smoker ?? false);
   const [petsOk, setPetsOk] = useState<boolean>(onboardingUser?.lifestyle?.petsOk ?? true);
-  const [guests, setGuests] = useState<'never' | 'sometimes' | 'often'>(onboardingUser?.lifestyle?.guests ?? 'sometimes');
-  const [noise, setNoise] = useState<'low' | 'med' | 'high'>(onboardingUser?.lifestyle?.noise ?? 'med');
   const [cookingAnswer, setCookingAnswer] = useState<string>(onboardingUser?.preferences?.quizAnswers?.cooking_habits ?? '');
   const [foodPreference, setFoodPreference] = useState<Lifestyle['foodPreference']>(onboardingUser?.lifestyle?.foodPreference ?? undefined);
 
@@ -28,16 +29,62 @@ export default function LifestyleScreen() {
     setCookingAnswer(answer);
   };
 
+  const bucketize = useCallback((value: number, buckets: Array<{ max: number; label: string }>): string => {
+    for (let i = 0; i < buckets.length; i++) {
+      if (value <= buckets[i].max) return buckets[i].label;
+    }
+    return buckets[buckets.length - 1]?.label ?? '';
+  }, []);
+
+  const cleanlinessEnum = useMemo(() => {
+    return bucketize(cleanlinessScore, [
+      { max: 3, label: CleanlinessLevel.CHILL },
+      { max: 7, label: CleanlinessLevel.AVG },
+      { max: 10, label: CleanlinessLevel.METICULOUS },
+    ]) as 'chill' | 'avg' | 'meticulous';
+  }, [bucketize, cleanlinessScore]);
+
+  const sleepEnum = useMemo(() => {
+    // 0 = very early, 10 = very late
+    return bucketize(sleepRhythmScore, [
+      { max: 3, label: SleepSchedule.EARLY },
+      { max: 7, label: SleepSchedule.FLEX },
+      { max: 10, label: SleepSchedule.NIGHT },
+    ]) as 'early' | 'flex' | 'night';
+  }, [bucketize, sleepRhythmScore]);
+
+  const guestsEnum = useMemo(() => {
+    return bucketize(guestsScore, [
+      { max: 3, label: GuestFrequency.NEVER },
+      { max: 7, label: GuestFrequency.SOMETIMES },
+      { max: 10, label: GuestFrequency.OFTEN },
+    ]) as 'never' | 'sometimes' | 'often';
+  }, [bucketize, guestsScore]);
+
+  const noiseEnum = useMemo(() => {
+    return bucketize(noiseLevelScore, [
+      { max: 3, label: NoiseTolerance.LOW },
+      { max: 7, label: NoiseTolerance.MED },
+      { max: 10, label: NoiseTolerance.HIGH },
+    ]) as 'low' | 'med' | 'high';
+  }, [bucketize, noiseLevelScore]);
+
   const handleContinue = () => {
     updateOnboardingUser({ 
       lifestyle: {
         ...onboardingUser?.lifestyle,
-        cleanliness,
-        sleep,
+        // categorical for backward compatibility in other parts of the app
+        cleanliness: cleanlinessEnum,
+        sleep: sleepEnum,
+        guests: guestsEnum,
+        noise: noiseEnum,
+        // numeric sliders
+        cleanlinessScore,
+        sleepRhythmScore,
+        guestsScore,
+        noiseLevelScore,
         smoker,
         petsOk,
-        guests,
-        noise,
         foodPreference,
       },
       preferences: {
@@ -63,114 +110,42 @@ export default function LifestyleScreen() {
           
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Living Preferences 🏠</Text>
-            
-            <View style={styles.preferenceGroup}>
-              <Text style={styles.preferenceLabel}>Cleanliness level</Text>
-              <View style={styles.optionRow}>
-                {[
-                  { key: 'chill', label: '😌 Chill', value: CleanlinessLevel.CHILL },
-                  { key: 'avg', label: '🧹 Average', value: CleanlinessLevel.AVG },
-                  { key: 'meticulous', label: '✨ Meticulous', value: CleanlinessLevel.METICULOUS }
-                ].map((option) => (
-                  <TouchableOpacity
-                    key={option.key}
-                    style={[
-                      styles.optionButton,
-                      cleanliness === option.value && styles.optionButtonSelected
-                    ]}
-                    onPress={() => setCleanliness(option.value as 'chill' | 'avg' | 'meticulous')}
-                  >
-                    <Text style={[
-                      styles.optionText,
-                      cleanliness === option.value && styles.optionTextSelected
-                    ]}>
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
 
-            <View style={styles.preferenceGroup}>
-              <Text style={styles.preferenceLabel}>Sleep schedule</Text>
-              <View style={styles.optionRow}>
-                {[
-                  { key: 'early', label: '🌅 Early bird', value: SleepSchedule.EARLY },
-                  { key: 'flex', label: '🔄 Flexible', value: SleepSchedule.FLEX },
-                  { key: 'night', label: '🦉 Night owl', value: SleepSchedule.NIGHT }
-                ].map((option) => (
-                  <TouchableOpacity
-                    key={option.key}
-                    style={[
-                      styles.optionButton,
-                      sleep === option.value && styles.optionButtonSelected
-                    ]}
-                    onPress={() => setSleep(option.value as 'early' | 'flex' | 'night')}
-                  >
-                    <Text style={[
-                      styles.optionText,
-                      sleep === option.value && styles.optionTextSelected
-                    ]}>
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
+            <SliderRow
+              label="Cleanliness"
+              value={cleanlinessScore}
+              onChange={setCleanlinessScore}
+              leftHint="Chill"
+              rightHint="Meticulous"
+              testID="slider-cleanliness"
+            />
 
-            <View style={styles.preferenceGroup}>
-              <Text style={styles.preferenceLabel}>Having guests over</Text>
-              <View style={styles.optionRow}>
-                {[
-                  { key: 'never', label: '🚫 Never', value: GuestFrequency.NEVER },
-                  { key: 'sometimes', label: '👥 Sometimes', value: GuestFrequency.SOMETIMES },
-                  { key: 'often', label: '🎉 Often', value: GuestFrequency.OFTEN }
-                ].map((option) => (
-                  <TouchableOpacity
-                    key={option.key}
-                    style={[
-                      styles.optionButton,
-                      guests === option.value && styles.optionButtonSelected
-                    ]}
-                    onPress={() => setGuests(option.value as 'never' | 'sometimes' | 'often')}
-                  >
-                    <Text style={[
-                      styles.optionText,
-                      guests === option.value && styles.optionTextSelected
-                    ]}>
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
+            <SliderRow
+              label="Sleep rhythm"
+              value={sleepRhythmScore}
+              onChange={setSleepRhythmScore}
+              leftHint="Early"
+              rightHint="Night owl"
+              testID="slider-sleep"
+            />
 
-            <View style={styles.preferenceGroup}>
-              <Text style={styles.preferenceLabel}>Noise tolerance</Text>
-              <View style={styles.optionRow}>
-                {[
-                  { key: 'low', label: '🤫 Low', value: NoiseTolerance.LOW },
-                  { key: 'med', label: '🔊 Medium', value: NoiseTolerance.MED },
-                  { key: 'high', label: '🎵 High', value: NoiseTolerance.HIGH }
-                ].map((option) => (
-                  <TouchableOpacity
-                    key={option.key}
-                    style={[
-                      styles.optionButton,
-                      noise === option.value && styles.optionButtonSelected
-                    ]}
-                    onPress={() => setNoise(option.value as 'low' | 'med' | 'high')}
-                  >
-                    <Text style={[
-                      styles.optionText,
-                      noise === option.value && styles.optionTextSelected
-                    ]}>
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
+            <SliderRow
+              label="Guests"
+              value={guestsScore}
+              onChange={setGuestsScore}
+              leftHint="Never"
+              rightHint="Often"
+              testID="slider-guests"
+            />
+
+            <SliderRow
+              label="Noise tolerance"
+              value={noiseLevelScore}
+              onChange={setNoiseLevelScore}
+              leftHint="Low"
+              rightHint="High"
+              testID="slider-noise"
+            />
 
             <View style={styles.switchGroup}>
               <View style={styles.switchRow}>
@@ -256,12 +231,81 @@ export default function LifestyleScreen() {
           <TouchableOpacity
             style={styles.continueButton}
             onPress={handleContinue}
+            testID="continue-button"
           >
             <Text style={styles.continueButtonText}>Continue</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+function SliderRow({
+  label,
+  value,
+  onChange,
+  leftHint,
+  rightHint,
+  testID,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  leftHint?: string;
+  rightHint?: string;
+  testID?: string;
+}) {
+  const trackWidthRef = useRef<number>(0);
+  const [local, setLocal] = useState<number>(value);
+
+  const onLayout = useCallback((e: LayoutChangeEvent) => {
+    trackWidthRef.current = e.nativeEvent.layout.width;
+  }, []);
+
+  const clamp = useCallback((n: number, min = 0, max = 10) => Math.max(min, Math.min(max, n)), []);
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onPanResponderGrant: (evt) => {
+          const x = evt.nativeEvent.locationX;
+          const next = clamp(Math.round((x / Math.max(trackWidthRef.current, 1)) * 10));
+          setLocal(next);
+          onChange(next);
+        },
+        onPanResponderMove: (evt, gesture) => {
+          const x = (gesture.moveX - (evt.nativeEvent.pageX - evt.nativeEvent.locationX));
+          const next = clamp(Math.round((x / Math.max(trackWidthRef.current, 1)) * 10));
+          setLocal(next);
+        },
+        onPanResponderRelease: () => {
+          onChange(local);
+        },
+      }),
+    [clamp, local, onChange]
+  );
+
+  const fillPercent = useMemo(() => `${(local / 10) * 100}%`, [local]);
+
+  return (
+    <View style={styles.preferenceGroup} testID={testID}>
+      <View style={styles.sliderHeaderRow}>
+        <Text style={styles.preferenceLabel}>{label}</Text>
+        <View style={styles.valueBubble}>
+          <Text style={styles.valueBubbleText}>{local}</Text>
+        </View>
+      </View>
+      <View style={styles.sliderTrack} onLayout={onLayout} {...panResponder.panHandlers}>
+        <View style={[styles.sliderFill, { width: fillPercent }]} />
+        <View style={[styles.sliderThumb, { left: fillPercent }]} />
+      </View>
+      <View style={styles.sliderHintsRow}>
+        <Text style={styles.sliderHintText}>{leftHint ?? ''}</Text>
+        <Text style={styles.sliderHintText}>{rightHint ?? ''}</Text>
+      </View>
+    </View>
   );
 }
 
@@ -335,8 +379,65 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     fontWeight: '600',
   },
+  sliderHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  sliderTrack: {
+    height: 16,
+    borderRadius: 999,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.text.secondary + '30',
+    overflow: 'hidden',
+  },
+  sliderFill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: theme.colors.primary + '33',
+  },
+  sliderThumb: {
+    position: 'absolute',
+    top: -6,
+    width: 28,
+    height: 28,
+    marginLeft: -14,
+    borderRadius: 14,
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  sliderHintsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  sliderHintText: {
+    fontSize: 12,
+    color: theme.colors.text.secondary,
+  },
+  valueBubble: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 12,
+  },
+  valueBubbleText: {
+    fontSize: 12,
+    color: 'white',
+    fontWeight: '700',
+  },
   switchGroup: {
-    marginTop: 16,
+    marginTop: 24,
   },
   switchRow: {
     flexDirection: 'row',

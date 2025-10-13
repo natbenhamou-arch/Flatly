@@ -40,6 +40,11 @@ export interface Lifestyle {
   petsOk: boolean;
   guests: 'never' | 'sometimes' | 'often';
   noise: 'low' | 'med' | 'high';
+  // Numeric sliders (0-10). 0 = low/early/never, 10 = high/night/often
+  cleanlinessScore?: number;
+  noiseLevelScore?: number;
+  sleepRhythmScore?: number;
+  guestsScore?: number;
   religion?: string;
   showReligion: boolean;
   dietary: string[];

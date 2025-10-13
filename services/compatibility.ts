@@ -75,32 +75,65 @@ export function computeCompatibility(input: CompatibilityInput): CompatibilityRe
 
   // SECONDARY FACTORS (25 points total)
   
-  // Cleanliness Match (+8)
-  if (currentLifestyle?.cleanliness && targetLifestyle?.cleanliness) {
+  // Cleanliness proximity (+8)
+  if (
+    (typeof currentLifestyle?.cleanlinessScore === 'number') &&
+    (typeof targetLifestyle?.cleanlinessScore === 'number')
+  ) {
+    const diff = Math.abs((currentLifestyle?.cleanlinessScore ?? 0) - (targetLifestyle?.cleanlinessScore ?? 0));
+    const proximity = 1 - Math.min(diff, 10) / 10;
+    const add = WEIGHTS.CLEANLINESS * proximity;
+    if (add > 0) {
+      score += add;
+      reasons.push({ text: 'Similar cleanliness expectations', weight: add });
+    }
+  } else if (currentLifestyle?.cleanliness && targetLifestyle?.cleanliness) {
     if (currentLifestyle.cleanliness === targetLifestyle.cleanliness) {
       score += WEIGHTS.CLEANLINESS;
-      const cleanLabel = currentLifestyle.cleanliness === 'meticulous' ? 'very clean' : 
-                        currentLifestyle.cleanliness === 'avg' ? 'moderately clean' : 'relaxed about cleanliness';
+      const cleanLabel = currentLifestyle.cleanliness === 'meticulous' ? 'very clean' :
+        currentLifestyle.cleanliness === 'avg' ? 'moderately clean' : 'relaxed about cleanliness';
       reasons.push({ text: `Both ${cleanLabel}`, weight: WEIGHTS.CLEANLINESS });
     }
   }
 
-  // Sleep Schedule Match (+8)
-  if (currentLifestyle?.sleep && targetLifestyle?.sleep) {
+  // Sleep rhythm proximity (+8)
+  if (
+    (typeof currentLifestyle?.sleepRhythmScore === 'number') &&
+    (typeof targetLifestyle?.sleepRhythmScore === 'number')
+  ) {
+    const diff = Math.abs((currentLifestyle?.sleepRhythmScore ?? 0) - (targetLifestyle?.sleepRhythmScore ?? 0));
+    const proximity = 1 - Math.min(diff, 10) / 10;
+    const add = WEIGHTS.SLEEP * proximity;
+    if (add > 0) {
+      score += add;
+      reasons.push({ text: 'Compatible sleep rhythm', weight: add });
+    }
+  } else if (currentLifestyle?.sleep && targetLifestyle?.sleep) {
     if (currentLifestyle.sleep === targetLifestyle.sleep) {
       score += WEIGHTS.SLEEP;
-      const sleepLabel = currentLifestyle.sleep === 'early' ? 'early birds' : 
-                        currentLifestyle.sleep === 'night' ? 'night owls' : 'flexible sleepers';
+      const sleepLabel = currentLifestyle.sleep === 'early' ? 'early birds' :
+        currentLifestyle.sleep === 'night' ? 'night owls' : 'flexible sleepers';
       reasons.push({ text: `Both ${sleepLabel}`, weight: WEIGHTS.SLEEP });
     }
   }
 
-  // Noise Tolerance Match (+9)
-  if (currentLifestyle?.noise && targetLifestyle?.noise) {
+  // Noise tolerance proximity (+9)
+  if (
+    (typeof currentLifestyle?.noiseLevelScore === 'number') &&
+    (typeof targetLifestyle?.noiseLevelScore === 'number')
+  ) {
+    const diff = Math.abs((currentLifestyle?.noiseLevelScore ?? 0) - (targetLifestyle?.noiseLevelScore ?? 0));
+    const proximity = 1 - Math.min(diff, 10) / 10;
+    const add = WEIGHTS.NOISE * proximity;
+    if (add > 0) {
+      score += add;
+      reasons.push({ text: 'Similar noise tolerance', weight: add });
+    }
+  } else if (currentLifestyle?.noise && targetLifestyle?.noise) {
     if (currentLifestyle.noise === targetLifestyle.noise) {
       score += WEIGHTS.NOISE;
-      const noiseLabel = currentLifestyle.noise === 'low' ? 'prefer quiet' : 
-                        currentLifestyle.noise === 'high' ? 'okay with noise' : 'moderate noise tolerance';
+      const noiseLabel = currentLifestyle.noise === 'low' ? 'prefer quiet' :
+        currentLifestyle.noise === 'high' ? 'okay with noise' : 'moderate noise tolerance';
       reasons.push({ text: `Both ${noiseLabel}`, weight: WEIGHTS.NOISE });
     }
   }
@@ -158,8 +191,19 @@ export function computeCompatibility(input: CompatibilityInput): CompatibilityRe
     }
   }
 
-  // Guest Frequency Match (+2)
-  if (currentLifestyle?.guests && targetLifestyle?.guests) {
+  // Guest frequency proximity (+2)
+  if (
+    (typeof currentLifestyle?.guestsScore === 'number') &&
+    (typeof targetLifestyle?.guestsScore === 'number')
+  ) {
+    const diff = Math.abs((currentLifestyle?.guestsScore ?? 0) - (targetLifestyle?.guestsScore ?? 0));
+    const proximity = 1 - Math.min(diff, 10) / 10;
+    const add = WEIGHTS.GUESTS * proximity;
+    if (add > 0) {
+      score += add;
+      reasons.push({ text: 'Similar social habits', weight: add });
+    }
+  } else if (currentLifestyle?.guests && targetLifestyle?.guests) {
     if (currentLifestyle.guests === targetLifestyle.guests) {
       score += WEIGHTS.GUESTS;
       reasons.push({ text: 'Similar social habits', weight: WEIGHTS.GUESTS });
