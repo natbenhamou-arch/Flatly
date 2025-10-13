@@ -95,6 +95,7 @@ export interface Preferences {
   dealbreakers: string[];
   mustHaves: string[];
   quizAnswers: Record<string, any>;
+  languageMatchOnly: boolean;
 }
 
 // Swipe & Match System

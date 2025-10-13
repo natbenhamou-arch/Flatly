@@ -35,13 +35,14 @@ const MUST_HAVES = [
 export default function PreferencesScreen() {
   const params = useLocalSearchParams<{ edit?: string }>();
   const isEditMode = params?.edit === '1';
-  const { updateOnboardingUser, currentUser, setOnboardingCompleted } = useAppStore();
+  const { updateOnboardingUser, currentUser, setOnboardingCompleted, refreshFeed } = useAppStore();
   const [ageMin, setAgeMin] = useState<string>('18');
   const [ageMax, setAgeMax] = useState<string>('30');
   const [lookingForGender, setLookingForGender] = useState<'male' | 'female' | 'both'>('both');
   const [universityOnly, setUniversityOnly] = useState<boolean>(false);
   const [selectedDealbreakers, setSelectedDealbreakers] = useState<string[]>([]);
   const [selectedMustHaves, setSelectedMustHaves] = useState<string[]>([]);
+  const [languageMatchOnly, setLanguageMatchOnly] = useState<boolean>(false);
   const [customDealbreaker, setCustomDealbreaker] = useState<string>('');
   const [customMustHave, setCustomMustHave] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -56,6 +57,7 @@ export default function PreferencesScreen() {
             setAgeMax(existing.ageMax.toString());
             setLookingForGender((existing.lookingFor === 'roommate' || existing.lookingFor === 'room') ? 'both' : 'both');
             setUniversityOnly(existing.universityFilter || false);
+            setLanguageMatchOnly(((existing as any)?.languageMatchOnly) ?? false);
             
             const dealbreakers = existing.dealbreakers || [];
             const customDB = dealbreakers.find(db => !DEALBREAKERS.includes(db));
@@ -134,7 +136,8 @@ export default function PreferencesScreen() {
           lookingFor: 'either',
           dealbreakers: finalDealbreakers,
           mustHaves: finalMustHaves,
-          quizAnswers: {}
+          quizAnswers: {},
+          languageMatchOnly
         };
         await setPreferences(preferences);
         Alert.alert('Saved', 'Preferences updated');
@@ -150,7 +153,8 @@ export default function PreferencesScreen() {
             lookingFor: 'either',
             dealbreakers: finalDealbreakers,
             mustHaves: finalMustHaves,
-            quizAnswers: {}
+            quizAnswers: {},
+            languageMatchOnly
           }
         });
         router.push('./review-create');
@@ -177,7 +181,8 @@ export default function PreferencesScreen() {
           lookingFor: 'either',
           dealbreakers: [],
           mustHaves: [],
-          quizAnswers: {}
+          quizAnswers: {},
+          languageMatchOnly: false
         };
         await setPreferences(defaultPreferences);
         Alert.alert('Saved', 'Reverted to defaults');
@@ -193,7 +198,8 @@ export default function PreferencesScreen() {
             lookingFor: 'either',
             dealbreakers: [],
             mustHaves: [],
-            quizAnswers: {}
+            quizAnswers: {},
+            languageMatchOnly: false
           }
         });
         router.push('./review-create');
@@ -278,6 +284,47 @@ export default function PreferencesScreen() {
                 <Switch
                   value={universityOnly}
                   onValueChange={setUniversityOnly}
+                  trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
+                  thumbColor="white"
+                />
+              </View>
+            </View>
+
+            {/* Language overlap filter */}
+            <View style={styles.section}>
+              <View style={styles.toggleRow}>
+                <View style={styles.toggleTextContainer}>
+                  <Text style={styles.sectionTitle}>Show me only people who share at least one of my languages</Text>
+                  <Text style={styles.sectionSubtitle}>Applies instantly to your feed</Text>
+                </View>
+                <Switch
+                  value={languageMatchOnly}
+                  onValueChange={async (v) => {
+                    try {
+                      setLanguageMatchOnly(v);
+                      if (isEditMode && currentUser) {
+                        const existing = await getPreferencesByUserId(currentUser.id);
+                        const next: Preferences = existing ? { ...existing, languageMatchOnly: v } : {
+                          userId: currentUser.id,
+                          ageMin: 18,
+                          ageMax: 30,
+                          cityOnly: true,
+                          universityFilter: false,
+                          maxDistanceKm: 0,
+                          lookingFor: 'either',
+                          dealbreakers: [],
+                          mustHaves: [],
+                          quizAnswers: {},
+                          languageMatchOnly: v,
+                        };
+                        await setPreferences(next);
+                        await refreshFeed();
+                      }
+                    } catch (e) {
+                      console.log('Failed to update languageMatchOnly instantly', e);
+                      Alert.alert('Update failed', 'Could not apply the filter right now. Try again.');
+                    }
+                  }}
                   trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
                   thumbColor="white"
                 />

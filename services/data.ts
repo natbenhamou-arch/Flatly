@@ -451,12 +451,17 @@ export async function getCurrentUser(): Promise<User | null> {
 
 // Feed Generation
 export async function getFeedUsers(currentUserId: string, limit: number = 20): Promise<FeedUser[]> {
-  const [users, swipes, currentUser, preferences] = await Promise.all([
+  const [users, swipes, currentUser, preferences, myLifestyle, allLifestyles] = await Promise.all([
     getUsers(),
     getSwipesByUser(currentUserId),
     getUserById(currentUserId),
-    getPreferencesByUserId(currentUserId)
+    getPreferencesByUserId(currentUserId),
+    getLifestyleByUserId(currentUserId),
+    getLifestyles()
   ]);
+
+  const lifestyleMap = new Map<string, Lifestyle>();
+  allLifestyles.forEach(l => lifestyleMap.set(l.userId, l));
 
   if (!currentUser || !preferences) return [];
 
@@ -476,6 +481,14 @@ export async function getFeedUsers(currentUserId: string, limit: number = 20): P
     
     // University filter (optional but recommended)
     if (preferences.universityFilter && user.university !== currentUser.university) return false;
+
+    // Language overlap gating when enabled
+    if (preferences.languageMatchOnly === true) {
+      const myLangs = myLifestyle?.languages ?? [];
+      const theirLangs = lifestyleMap.get(user.id)?.languages ?? [];
+      const share = myLangs.length > 0 && theirLangs.length > 0 && myLangs.some(l => theirLangs.includes(l));
+      if (!share) return false;
+    }
     
     if (!user.photos || user.photos.length === 0) return false;
     
@@ -714,7 +727,8 @@ export async function seedData(): Promise<void> {
         morningPerson: true,
         partyTolerance: 'low',
         cleaningFrequency: 'weekly'
-      }
+      },
+      languageMatchOnly: false
     },
     {
       userId: 'demo_2',
@@ -730,7 +744,8 @@ export async function seedData(): Promise<void> {
         morningPerson: false,
         partyTolerance: 'medium',
         cleaningFrequency: 'biweekly'
-      }
+      },
+      languageMatchOnly: false
     }
   ];
 
@@ -779,7 +794,8 @@ export async function seedData(): Promise<void> {
       morningPerson: false,
       partyTolerance: 'medium',
       cleaningFrequency: 'weekly'
-    }
+    },
+    languageMatchOnly: false
   };
 
   // Create some demo matches
@@ -1018,7 +1034,8 @@ export async function seedDemoUsers({ parisCount = 14, londonCount = 14 }: { par
         morningPerson: randomFrom([true, false]),
         partyTolerance: randomFrom(['low', 'medium', 'high']),
         cleaningFrequency: randomFrom(['daily', 'weekly', 'biweekly'])
-      }
+      },
+      languageMatchOnly: false
     };
   }
 
