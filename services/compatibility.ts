@@ -1,21 +1,21 @@
 import { User, Lifestyle, Housing, Preferences, CompatibilityResult } from '@/types';
 
-// Compatibility scoring weights (total = 100)
-// Primary factors: City, University, Language (60 points)
-// Secondary factors: Lifestyle (cleanliness, sleep, noise) (25 points)
-// Tertiary factors: Hobbies, food, politics, religion (15 points)
+// Compatibility scoring weights
+// Primary factors: City, University, Language (strong)
+// Secondary factors: Lifestyle (cleanliness, sleep, noise)
+// Tertiary factors: Hobbies, food, politics, religion
 const WEIGHTS = {
   SAME_CITY: 25,
   UNIVERSITY: 20,
-  LANGUAGE: 15,
+  LANGUAGE: 25,
   CLEANLINESS: 8,
   SLEEP: 8,
   NOISE: 9,
   BUDGET_FIT: 8,
-  HOBBIES: 5,
-  FOOD: 3,
-  POLITICS: 2,
-  RELIGION: 3,
+  HOBBIES: 3,
+  FOOD: 2,
+  POLITICS: 1,
+  RELIGION: 2,
   SMOKING: 2,
   PETS: 2,
   GUESTS: 2,
@@ -66,9 +66,9 @@ export function computeCompatibility(input: CompatibilityInput): CompatibilityRe
     reasons.push({ text: `Both study at ${currentUser.university}`, weight: WEIGHTS.UNIVERSITY });
   }
 
-  // Language Compatibility (+15)
+  // Language Compatibility (strong weight)
   const languageScore = calculateLanguageCompatibility(currentLifestyle, targetLifestyle);
-  if (languageScore.score > 0) {
+  if (languageScore.score > 0 && languageScore.reason) {
     score += languageScore.score;
     reasons.push({ text: languageScore.reason, weight: languageScore.score });
   }
@@ -240,23 +240,20 @@ function calculateLanguageCompatibility(
     return { score: 0, reason: '' };
   }
 
-  // Extract languages from dietary or other fields (simplified)
-  // In a real app, you'd have a dedicated languages field
-  // For now, we'll give partial points if they share hobbies that indicate language
-  const currentHobbies = new Set(currentLifestyle.hobbies || []);
-  const targetHobbies = new Set(targetLifestyle.hobbies || []);
-  
-  const languageIndicators = ['languages', 'travel', 'books', 'films'];
-  const sharedLanguageInterests = languageIndicators.filter(indicator => 
-    currentHobbies.has(indicator) && targetHobbies.has(indicator)
-  );
+  const currentLangs = new Set((currentLifestyle.languages ?? []).map(l => l.trim().toLowerCase()).filter(Boolean));
+  const targetLangs = new Set((targetLifestyle.languages ?? []).map(l => l.trim().toLowerCase()).filter(Boolean));
 
-  if (sharedLanguageInterests.length > 0) {
-    return { score: WEIGHTS.LANGUAGE, reason: 'Share language interests' };
+  if (currentLangs.size === 0 || targetLangs.size === 0) {
+    return { score: 0, reason: '' };
   }
 
-  // Default: assume same language if in same city
-  return { score: WEIGHTS.LANGUAGE * 0.5, reason: 'Can communicate easily' };
+  const overlap = Array.from(currentLangs).filter(l => targetLangs.has(l));
+  if (overlap.length >= 1) {
+    const pretty = overlap.slice(0, 2).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' and ');
+    return { score: WEIGHTS.LANGUAGE, reason: `You both speak ${pretty}` };
+  }
+
+  return { score: 0, reason: '' };
 }
 
 function calculateHobbiesOverlap(

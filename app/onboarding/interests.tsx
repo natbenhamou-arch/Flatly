@@ -127,8 +127,8 @@ export default function InterestsScreen() {
   const [selectedHobbies, setSelectedHobbies] = useState<string[]>(onboardingUser?.lifestyle?.hobbies ?? []);
   const [selectedSports, setSelectedSports] = useState<string[]>(onboardingUser?.lifestyle?.sportsHobbies ?? []);
   const [seriesFilms, setSeriesFilms] = useState<string>(onboardingUser?.lifestyle?.seriesFilms ?? '');
-  const [selectedNationalities, setSelectedNationalities] = useState<string[]>([]);
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [selectedNationalities, setSelectedNationalities] = useState<string[]>(onboardingUser?.lifestyle?.nationalities ?? []);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(onboardingUser?.lifestyle?.languages ?? []);
 
   const handleContinue = () => {
     updateOnboardingUser({ 
@@ -137,6 +137,8 @@ export default function InterestsScreen() {
         hobbies: selectedHobbies,
         sportsHobbies: selectedSports,
         seriesFilms: seriesFilms.trim() || undefined,
+        nationalities: selectedNationalities,
+        languages: selectedLanguages,
       }
     });
 

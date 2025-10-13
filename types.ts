@@ -54,6 +54,9 @@ export interface Lifestyle {
   foodOther?: string;
   sportsHobbies?: string[];
   seriesFilms?: string;
+  // New language & nationality fields
+  languages?: string[];
+  nationalities?: string[];
 }
 
 // Housing & Room Details

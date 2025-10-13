@@ -651,7 +651,9 @@ export async function seedData(): Promise<void> {
       dietary: ['vegetarian'],
       studyProgramYear: 'Senior',
       jobOrInternship: 'Software Engineering Intern',
-      showGender: true
+      showGender: true,
+      languages: ['English', 'French'],
+      nationalities: ['American']
     },
     {
       userId: 'demo_2',
@@ -667,7 +669,9 @@ export async function seedData(): Promise<void> {
       dietary: [],
       studyProgramYear: 'Graduate',
       jobOrInternship: 'Research Assistant',
-      showGender: true
+      showGender: true,
+      languages: ['English', 'Spanish'],
+      nationalities: ['British']
     }
   ];
 
@@ -745,7 +749,9 @@ export async function seedData(): Promise<void> {
     dietary: ['vegan'],
     studyProgramYear: 'Junior',
     jobOrInternship: 'Gallery Assistant',
-    showGender: true
+    showGender: true,
+    languages: ['English', 'Italian'],
+    nationalities: ['Italian']
   };
 
   // Seed demo housing for new user
@@ -923,6 +929,10 @@ export async function seedDemoUsers({ parisCount = 14, londonCount = 14 }: { par
   }
 
   function makeLifestyle(userId: string): Lifestyle {
+    const languagePool = ['English','French','Spanish','German','Italian','Portuguese'];
+    const natPool = ['American','British','French','Spanish','Italian','German'];
+    const langs = Array.from(new Set([randomFrom(languagePool), randomFrom(languagePool)])).filter(Boolean);
+    const nats = [randomFrom(natPool)];
     return {
       userId,
       hobbies: randomFrom([
@@ -943,8 +953,10 @@ export async function seedDemoUsers({ parisCount = 14, londonCount = 14 }: { par
       dietary: randomFrom([[], ['vegetarian'], ['vegan'], ['halal']]),
       studyProgramYear: randomFrom(['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate']),
       jobOrInternship: randomFrom(['Student', 'Part-time', 'Intern', 'Full-time']),
-      showGender: true
-    };
+      showGender: true,
+      languages: langs,
+      nationalities: nats
+    } as Lifestyle;
   }
 
   function makeHousing(userId: string, hasRoom: boolean): Housing {
