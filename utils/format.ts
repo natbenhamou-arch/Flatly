@@ -1,8 +1,10 @@
 export function displayName(firstName: string, lastNameOrUndefined?: string): string {
-  if (!lastNameOrUndefined) {
-    return firstName;
+  const safeFirst = (firstName || '').trim();
+  const safeLast = (lastNameOrUndefined || '').trim();
+  if (!safeLast) {
+    return safeFirst;
   }
-  return `${firstName} ${lastNameOrUndefined.charAt(0)}.`;
+  return `${safeFirst} ${safeLast.charAt(0)}.`;
 }
 
 export function safeNeighborhoodText(neighborhood?: string): string {

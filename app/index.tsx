@@ -1,14 +1,14 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { theme, colors, gradients } from '@/constants/theme';
+import { theme, colors } from '@/constants/theme';
 import { useAppStore } from '@/store/app-store';
-import { Apple, Facebook } from 'lucide-react-native';
+import { Apple } from 'lucide-react-native';
+import { signInWithProvider } from '@/services/auth';
 
 export default function IndexScreen() {
-  const { currentUser, initializeApp, isLoading, hasCompletedOnboarding } = useAppStore();
+  const { currentUser, initializeApp, isLoading, hasCompletedOnboarding, setCurrentUser, setOnboardingCompleted } = useAppStore();
   const styles = getStyles();
 
   useEffect(() => {
@@ -32,15 +32,25 @@ export default function IndexScreen() {
     }
   }, [currentUser, isLoading, hasCompletedOnboarding]);
 
-  const handleGetStarted = () => {
-    console.log('Navigate to sign up...');
-    router.push('/signup');
-  };
+  const handleProvider = useCallback(async (provider: 'apple' | 'google') => {
+    console.log('Provider sign-in pressed', provider);
+    try {
+      const result = await signInWithProvider(provider);
+      if (result.success && result.user) {
+        await setCurrentUser(result.user);
+        setOnboardingCompleted(false);
+        router.replace('/onboarding/full-name');
+      } else {
+        console.log('Provider sign-in failed');
+      }
+    } catch (e) {
+      console.log('Provider sign-in error', e);
+    }
+  }, [setCurrentUser, setOnboardingCompleted]);
 
-  const handleSignIn = () => {
-    console.log('Navigate to sign in...');
+  const handleEmail = useCallback(() => {
     router.push('/signin');
-  };
+  }, []);
 
   if (isLoading) {
     return (
@@ -65,69 +75,54 @@ export default function IndexScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={gradients.navy}
-        style={styles.gradientBackground}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.content}>
-            <View style={styles.header}>
-              <View style={styles.logoContainer}>
-                <Image
-                  source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/344pj7718gxg1qvcgbgp1' }}
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
-              </View>
-              <Text style={styles.title} testID="brand-wordmark">FLATLY</Text>
-              <Text style={styles.subtitle}>
-                Find your perfect roommate.
-              </Text>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <Image
+                source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/344pj7718gxg1qvcgbgp1' }}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
-
-            <View style={styles.actions}>
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={handleGetStarted}
-                testID="apple-signin-button"
-              >
-                <Apple size={20} color="#000" />
-                <Text style={styles.socialButtonText}>Continue with Apple</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={handleGetStarted}
-                testID="google-signin-button"
-              >
-                <View style={styles.googleIcon}>
-                  <Text style={styles.googleG}>G</Text>
-                </View>
-                <Text style={styles.socialButtonText}>Continue with Google</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={handleGetStarted}
-                testID="facebook-signin-button"
-              >
-                <Facebook size={20} color="#1877F2" fill="#1877F2" />
-                <Text style={styles.socialButtonText}>Continue with Facebook</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={handleSignIn}
-                testID="sign-in-button"
-              >
-                <Text style={styles.secondaryButtonText}>Sign In</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.title} testID="brand-wordmark">FLATLY</Text>
+            <Text style={styles.subtitle}>
+              Find your perfect roommate.
+            </Text>
           </View>
-        </SafeAreaView>
-      </LinearGradient>
+
+          <View style={styles.actions}>
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => handleProvider('apple')}
+              testID="apple-signin-button"
+            >
+              <Apple size={20} color="#000" />
+              <Text style={styles.socialButtonText}>Continue with Apple</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => handleProvider('google')}
+              testID="google-signin-button"
+            >
+              <View style={styles.googleIcon}>
+                <Text style={styles.googleG}>G</Text>
+              </View>
+              <Text style={styles.socialButtonText}>Continue with Google</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={handleEmail}
+              testID="email-signin-button"
+            >
+              <Image source={{ uri: 'https://cdn.simpleicons.org/maildotru/000000' }} style={styles.mailIcon} />
+              <Text style={styles.socialButtonText}>Continue with Email</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
     </View>
   );
 }
@@ -135,9 +130,7 @@ export default function IndexScreen() {
 const getStyles = () => StyleSheet.create({
   container: {
     flex: 1,
-  },
-  gradientBackground: {
-    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   safeArea: {
     flex: 1,
@@ -168,21 +161,22 @@ const getStyles = () => StyleSheet.create({
   logo: {
     width: 100,
     height: 100,
+    tintColor: '#2563EB',
   },
   title: {
     fontSize: 48,
     fontWeight: '700' as const,
-    color: 'white',
+    color: '#2563EB',
     textAlign: 'center' as const,
     letterSpacing: 2,
-    marginBottom: 16,
+    marginBottom: 12,
     fontFamily: 'Montserrat-SemiBold',
   },
   subtitle: {
-    fontSize: 18,
-    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 17,
+    color: '#4B5563',
     textAlign: 'center' as const,
-    lineHeight: 26,
+    lineHeight: 24,
     fontWeight: '400' as const,
     fontFamily: 'Montserrat-Regular',
   },
@@ -225,21 +219,23 @@ const getStyles = () => StyleSheet.create({
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 25,
     gap: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   socialButtonText: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: colors.secondary,
+    color: '#111827',
     fontFamily: 'Montserrat-SemiBold',
   },
   googleIcon: {
@@ -255,16 +251,9 @@ const getStyles = () => StyleSheet.create({
     fontWeight: 'bold' as const,
     color: 'white',
   },
-  secondaryButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    alignItems: 'center' as const,
-    marginTop: 8,
-  },
-  secondaryButtonText: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '600' as const,
-    fontFamily: 'Montserrat-SemiBold',
+  mailIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#000000',
   },
 });

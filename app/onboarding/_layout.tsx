@@ -4,6 +4,7 @@ import { theme } from '@/constants/theme';
 import { OnboardingProgressBar } from '@/components/OnboardingProgressBar';
 
 const ONBOARDING_STEPS = [
+  'full-name',
   'school-city',
   'housing', 
   'interests',
@@ -15,6 +16,7 @@ const ONBOARDING_STEPS = [
 ];
 
 const STEP_TITLES = [
+  'Full Name',
   'School & City',
   'Housing Details',
   'Interests',
@@ -50,6 +52,7 @@ export default function OnboardingLayout() {
         animation: 'slide_from_right',
       }}
     >
+      <Stack.Screen name="full-name" />
       <Stack.Screen name="school-city" />
       <Stack.Screen name="housing" />
       <Stack.Screen name="interests" />

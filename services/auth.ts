@@ -6,7 +6,8 @@ import { createUser, getUserById, getUsers } from './data';
 // Storage keys
 const AUTH_STORAGE_KEYS = {
   SESSION_TOKEN: 'flatmatch_session_token',
-  USER_CREDENTIALS: 'flatmatch_user_credentials'
+  USER_CREDENTIALS: 'flatmatch_user_credentials',
+  PROVIDER_ACCOUNTS: 'flatmatch_provider_accounts'
 } as const;
 
 // Types
@@ -14,6 +15,16 @@ export interface UserCredentials {
   id: string;
   email: string;
   hashedPassword: string;
+  createdAt: string;
+}
+
+export type AuthProvider = 'apple' | 'google';
+
+export interface ProviderAccount {
+  provider: AuthProvider;
+  providerUserId: string;
+  email: string;
+  userId: string;
   createdAt: string;
 }
 
@@ -123,6 +134,24 @@ async function getStoredCredentials(): Promise<UserCredentials[]> {
   } catch (error) {
     console.error('Error getting stored credentials:', error);
     return [];
+  }
+}
+
+async function getProviderAccounts(): Promise<ProviderAccount[]> {
+  try {
+    const data = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.PROVIDER_ACCOUNTS);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error('Error getting provider accounts:', error);
+    return [];
+  }
+}
+
+async function saveProviderAccounts(accounts: ProviderAccount[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(AUTH_STORAGE_KEYS.PROVIDER_ACCOUNTS, JSON.stringify(accounts));
+  } catch (error) {
+    console.error('Error saving provider accounts:', error);
   }
 }
 
@@ -254,6 +283,68 @@ export async function signOut(): Promise<void> {
     console.log('User signed out successfully');
   } catch (error) {
     console.error('Sign out error:', error);
+  }
+}
+
+export async function signInWithProvider(provider: AuthProvider, opts?: { email?: string; fullName?: string }): Promise<{ success: boolean; user?: User; error?: string }> {
+  try {
+    const providerUserId = `${provider}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+    const email = (opts?.email && opts.email.includes('@'))
+      ? opts.email.toLowerCase()
+      : provider === 'apple'
+        ? `${providerUserId}@privaterelay.appleid.com`
+        : `${providerUserId}@gmail.com`;
+
+    const [accounts, users] = await Promise.all([getProviderAccounts(), getUsers()]);
+
+    const existingAccount = accounts.find(a => a.provider === provider && a.email === email);
+    if (existingAccount) {
+      const user = await getUserById(existingAccount.userId);
+      if (user) {
+        const token = CryptoUtils.generateSessionToken();
+        await saveSessionToken(token);
+        return { success: true, user };
+      }
+    }
+
+    const names = (opts?.fullName || '').trim().split(/\s+/);
+    const firstName = names[0] || '';
+    const lastName = names.length > 1 ? names.slice(1).join(' ') : '';
+
+    const placeholderUser: Omit<User, 'id' | 'createdAt'> = {
+      email,
+      firstName,
+      lastName,
+      birthdate: '2000-01-01',
+      age: 24,
+      university: '',
+      city: '',
+      geo: { lat: 0, lng: 0 },
+      hasRoom: false,
+      shortBio: '',
+      photos: [],
+      badges: [],
+    } as Omit<User, 'id' | 'createdAt'>;
+
+    const newUser = await createUser(placeholderUser);
+
+    const newAccount: ProviderAccount = {
+      provider,
+      providerUserId,
+      email,
+      userId: newUser.id,
+      createdAt: new Date().toISOString()
+    };
+
+    await saveProviderAccounts([...accounts, newAccount]);
+
+    const token = CryptoUtils.generateSessionToken();
+    await saveSessionToken(token);
+
+    return { success: true, user: newUser };
+  } catch (error) {
+    console.error('Provider sign-in error:', error);
+    return { success: false, error: 'Unable to sign in with provider' };
   }
 }
 
