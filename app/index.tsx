@@ -96,7 +96,6 @@ export default function IndexScreen() {
           </View>
 
           <View style={styles.actions}>
-            <Text style={styles.actionTitle}>Sign Up</Text>
             <TouchableOpacity
               style={styles.socialButton}
               onPress={() => handleProvider('apple')}

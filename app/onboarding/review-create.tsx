@@ -321,6 +321,9 @@ export default function ReviewCreateScreen() {
               autoCapitalize="none"
               autoComplete="new-password"
             />
+            <Text style={styles.passwordHint}>
+              Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number.
+            </Text>
             {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
             
             <TextInput
@@ -560,5 +563,6 @@ const styles = StyleSheet.create({
   },
   secondaryBtnText: { color: theme.colors.text.secondary, fontSize: 16, fontWeight: '600' },
   errorText: { color: theme.colors.danger, fontSize: 14, marginTop: 4 },
+  passwordHint: { fontSize: 12, color: theme.colors.text.secondary, marginTop: 4, marginBottom: 4, lineHeight: 16 },
   fallbackCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
 });
