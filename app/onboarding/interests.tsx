@@ -8,9 +8,9 @@ import { HOBBY_CATEGORIES } from '@/types';
 
 const SPORTS_HOBBIES = ['Gym','Running','Cycling','Football','Basketball','Yoga','Chess','Gaming','Photography','Cooking','Travel','Reading'];
 
-const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Chinese', 'Japanese', 'Korean', 'Arabic', 'Russian', 'Hindi'];
+const LANGUAGES = ['English','Spanish','French','German','Italian','Portuguese','Chinese (Mandarin)','Cantonese','Japanese','Korean','Arabic','Russian','Hindi','Bengali','Urdu','Punjabi','Turkish','Vietnamese','Thai','Dutch','Swedish','Norwegian','Danish','Finnish','Polish','Czech','Greek','Hebrew','Persian (Farsi)','Indonesian','Malay','Tagalog','Swahili','Amharic','Ukrainian','Romanian','Hungarian','Serbian','Croatian','Bulgarian','Slovak','Catalan'];
 
-const NATIONALITIES = ['American', 'British', 'Canadian', 'Australian', 'French', 'German', 'Italian', 'Spanish', 'Chinese', 'Japanese', 'Indian', 'Brazilian', 'Mexican', 'Other'];
+const NATIONALITIES = ['American','Argentinian','Australian','Austrian','Bangladeshi','Belgian','Brazilian','British','Bulgarian','Canadian','Chilean','Chinese','Colombian','Croatian','Cuban','Czech','Danish','Dutch','Egyptian','Emirati','Ethiopian','Finnish','French','German','Greek','Hungarian','Icelandic','Indian','Indonesian','Iranian','Iraqi','Irish','Israeli','Italian','Jamaican','Japanese','Jordanian','Kenyan','Kuwaiti','Lebanese','Malaysian','Mexican','Moroccan','Nepalese','New Zealander','Nigerian','Norwegian','Pakistani','Peruvian','Philippine','Polish','Portuguese','Qatari','Romanian','Russian','Saudi','Scottish','Serbian','Singaporean','Slovak','Slovenian','South African','South Korean','Spanish','Sri Lankan','Swedish','Swiss','Thai','Tunisian','Turkish','Ukrainian','Venezuelan','Vietnamese','Welsh','Other'];
 
 type SearchMultiSelectProps = {
   title: string;
@@ -20,6 +20,7 @@ type SearchMultiSelectProps = {
   selected: string[];
   onChange: (next: string[]) => void;
   testIDPrefix: string;
+  allowCustom?: boolean;
 };
 
 const SearchMultiSelect = React.memo(function SearchMultiSelect({
@@ -30,6 +31,7 @@ const SearchMultiSelect = React.memo(function SearchMultiSelect({
   selected,
   onChange,
   testIDPrefix,
+  allowCustom = true,
 }: SearchMultiSelectProps) {
   const [query, setQuery] = useState<string>('');
 
@@ -77,7 +79,7 @@ const SearchMultiSelect = React.memo(function SearchMultiSelect({
           returnKeyType="search"
           onSubmitEditing={() => addItem(query)}
         />
-        {canAddCustom && (
+        {allowCustom && canAddCustom && (
           <TouchableOpacity
             testID={`${testIDPrefix}-add-custom`}
             onPress={() => addItem(query)}
@@ -89,18 +91,20 @@ const SearchMultiSelect = React.memo(function SearchMultiSelect({
       </View>
 
       {suggestions.length > 0 && (
-        <View style={styles.suggestionsWrap}>
-          {suggestions.map(s => (
-            <TouchableOpacity
-              key={`${testIDPrefix}-sugg-${s}`}
-              testID={`${testIDPrefix}-sugg-${s}`}
-              style={styles.suggestionChip}
-              onPress={() => addItem(s)}
-            >
-              <Text style={styles.suggestionText}>{s}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <ScrollView style={styles.suggestionsScroll} nestedScrollEnabled>
+          <View style={styles.suggestionsWrap}>
+            {suggestions.map(s => (
+              <TouchableOpacity
+                key={`${testIDPrefix}-sugg-${s}`}
+                testID={`${testIDPrefix}-sugg-${s}`}
+                style={styles.suggestionChip}
+                onPress={() => addItem(s)}
+              >
+                <Text style={styles.suggestionText}>{s}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
       )}
 
       {normalizedSelected.length > 0 && (
@@ -189,22 +193,24 @@ export default function InterestsScreen() {
 
           <SearchMultiSelect
             title="Nationality 🌍"
-            subtitle="You can pick multiple or add your own"
+            subtitle="Scroll and tap to select (multiple)"
             curated={NATIONALITIES}
-            placeholder="Search nationalities..."
+            placeholder="Search or scroll nationalities..."
             selected={selectedNationalities}
             onChange={setSelectedNationalities}
             testIDPrefix="nationalities"
+            allowCustom={false}
           />
 
           <SearchMultiSelect
             title="Languages you speak 🗣️"
-            subtitle="Select all that apply"
+            subtitle="Scroll and tap to select (multiple)"
             curated={LANGUAGES}
-            placeholder="Search languages..."
+            placeholder="Search or scroll languages..."
             selected={selectedLanguages}
             onChange={setSelectedLanguages}
             testIDPrefix="languages"
+            allowCustom={false}
           />
 
           <TouchableOpacity
@@ -335,6 +341,10 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     fontWeight: '600',
+  },
+  suggestionsScroll: {
+    maxHeight: 200,
+    marginBottom: 8,
   },
   suggestionsWrap: {
     flexDirection: 'row',

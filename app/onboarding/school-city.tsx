@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { theme } from '@/constants/theme';
-import { searchUniversities, getNeighborhoods, findUniversityByName } from '@/mocks/universities';
+import { searchUniversities, findUniversityByName } from '@/mocks/universities';
 import { University } from '@/types';
 import { useAppStore } from '@/store/app-store';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -30,7 +30,7 @@ export default function SchoolCityScreen() {
   const [country, setCountry] = useState<string>(onboardingUser?.country || '');
   const [cityResults, setCityResults] = useState<{ id: string; name: string; country: string; lat: number; lng: number }[]>([]);
   const [loadingCities, setLoadingCities] = useState<boolean>(false);
-  const [selectedNeighborhoods, setSelectedNeighborhoods] = useState<string[]>([]);
+  // removed extra neighborhood selection from this step
   const [top500Only, setTop500Only] = useState<boolean>(false);
   const [job, setJob] = useState<string>(onboardingUser?.job || '');
 
@@ -39,9 +39,7 @@ export default function SchoolCityScreen() {
     return searchUniversities(universityQuery, { top500Only });
   }, [universityQuery, top500Only]);
 
-  const availableNeighborhoods = useMemo(() => {
-    return getNeighborhoods(city);
-  }, [city]);
+  // neighborhoods are handled in housing step
 
   const handleUniversitySelect = (university: University) => {
     if (!university?.name?.trim() || university.name.length > 200) {
@@ -92,19 +90,7 @@ export default function SchoolCityScreen() {
     updateOnboardingUser({ city: c.name, country: c.country, geo: { lat: c.lat, lng: c.lng } });
   };
 
-  const handleNeighborhoodToggle = (neighborhood: string) => {
-    if (!neighborhood?.trim() || neighborhood.length > 100) {
-      return;
-    }
-    const sanitizedNeighborhood = neighborhood.trim();
-    setSelectedNeighborhoods(prev => {
-      if (prev.includes(sanitizedNeighborhood)) {
-        return prev.filter(n => n !== sanitizedNeighborhood);
-      } else {
-        return [...prev, sanitizedNeighborhood];
-      }
-    });
-  };
+  
 
   const handleContinue = () => {
     // If university is selected but no city, use university city
@@ -268,33 +254,7 @@ export default function SchoolCityScreen() {
           </View>
         </View>
 
-        {availableNeighborhoods.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.label}>Preferred Neighborhoods</Text>
-            <Text style={styles.helperText}>
-              Select areas you&apos;d like to live in (optional)
-            </Text>
-            <View style={styles.chipContainer}>
-              {availableNeighborhoods.map((neighborhood) => (
-                <TouchableOpacity
-                  key={neighborhood}
-                  style={[
-                    styles.chip,
-                    selectedNeighborhoods.includes(neighborhood.trim()) && styles.chipSelected
-                  ]}
-                  onPress={() => handleNeighborhoodToggle(neighborhood)}
-                >
-                  <Text style={[
-                    styles.chipText,
-                    selectedNeighborhoods.includes(neighborhood.trim()) && styles.chipTextSelected
-                  ]}>
-                    {neighborhood}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        )}
+        
 
         <LinearGradient
           colors={['#74b9ff', '#0984e3']}

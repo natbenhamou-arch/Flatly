@@ -18,6 +18,14 @@ export default function ReviewCreateScreen() {
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<{ email?: string; confirmEmail?: string; password?: string; confirm?: string }>({});
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+
+  const passwordRules = [
+    { key: 'len', label: 'At least 8 characters', passed: password.length >= 8 },
+    { key: 'upper', label: 'One uppercase letter', passed: /[A-Z]/.test(password) },
+    { key: 'lower', label: 'One lowercase letter', passed: /[a-z]/.test(password) },
+    { key: 'num', label: 'One number', passed: /\d/.test(password) },
+  ];
 
 
 
@@ -312,29 +320,42 @@ export default function ReviewCreateScreen() {
             />
             {errors.confirmEmail ? <Text style={styles.errorText}>{errors.confirmEmail}</Text> : null}
             
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Password"
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="new-password"
-            />
-            <Text style={styles.passwordHint}>
-              Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number.
-            </Text>
+            <View style={styles.passwordRow}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Password"
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoComplete="new-password"
+              />
+              <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(!showPassword)}>
+                <Text style={styles.eyeText}>{showPassword ? 'Hide' : 'Show'}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.passwordChecklist}>
+              {passwordRules.map((r) => (
+                <Text key={r.key} style={[styles.passwordRuleText, r.passed ? styles.rulePassed : styles.ruleFailed]}>• {r.label}</Text>
+              ))}
+            </View>
             {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
             
-            <TextInput
-              style={styles.input}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder="Confirm Password"
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="new-password"
-            />
+            <View style={styles.passwordRow}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="Confirm Password"
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoComplete="new-password"
+              />
+              <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(!showPassword)}>
+                <Text style={styles.eyeText}>{showPassword ? 'Hide' : 'Show'}</Text>
+              </TouchableOpacity>
+            </View>
             {errors.confirm ? <Text style={styles.errorText}>{errors.confirm}</Text> : null}
 
             <TouchableOpacity style={[styles.primaryBtn, isLoading ? styles.primaryBtnDisabled : null]} disabled={isLoading} onPress={handleCreate}>
@@ -564,5 +585,12 @@ const styles = StyleSheet.create({
   secondaryBtnText: { color: theme.colors.text.secondary, fontSize: 16, fontWeight: '600' },
   errorText: { color: theme.colors.danger, fontSize: 14, marginTop: 4 },
   passwordHint: { fontSize: 12, color: theme.colors.text.secondary, marginTop: 4, marginBottom: 4, lineHeight: 16 },
+  passwordRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  eyeBtn: { paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: theme.colors.border, borderRadius: 10, backgroundColor: theme.colors.surface },
+  eyeText: { color: theme.colors.text.primary, fontWeight: '600' },
+  passwordChecklist: { marginTop: 8, marginBottom: 4 },
+  passwordRuleText: { fontSize: 13, marginTop: 2 },
+  rulePassed: { color: '#10B981' },
+  ruleFailed: { color: '#EF4444' },
   fallbackCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
 });

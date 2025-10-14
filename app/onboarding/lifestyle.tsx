@@ -287,19 +287,30 @@ function SliderRow({
     [clamp, local, onChange]
   );
 
-  const fillPercent = useMemo(() => `${(local / 10) * 100}%`, [local]);
+  const fillPercent = useMemo(() => (local / 10), [local]);
+  const percentText = `${fillPercent * 100}%`;
+
+  const emoji = useMemo(() => {
+    if (fillPercent <= 0.2) return '🥱';
+    if (fillPercent <= 0.4) return '🙂';
+    if (fillPercent <= 0.6) return '😄';
+    if (fillPercent <= 0.8) return '🤩';
+    return '🏆';
+  }, [fillPercent]);
 
   return (
     <View style={styles.preferenceGroup} testID={testID}>
       <View style={styles.sliderHeaderRow}>
         <Text style={styles.preferenceLabel}>{label}</Text>
         <View style={styles.valueBubble}>
-          <Text style={styles.valueBubbleText}>{local}</Text>
+          <Text style={styles.valueBubbleText}>{local} {emoji}</Text>
         </View>
       </View>
       <View style={styles.sliderTrack} onLayout={onLayout} {...panResponder.panHandlers}>
-        <View style={[styles.sliderFill, { width: fillPercent }]} />
-        <View style={[styles.sliderThumb, { left: fillPercent }]} />
+        <View style={[styles.sliderFill, { width: percentText, backgroundColor: `rgba(37,99,235,${0.2 + 0.6 * fillPercent})` }]} />
+        <View style={[styles.sliderThumb, { left: percentText }]}> 
+          <Text style={styles.sliderThumbEmoji}>{emoji}</Text>
+        </View>
       </View>
       <View style={styles.sliderHintsRow}>
         <Text style={styles.sliderHintText}>{leftHint ?? ''}</Text>
@@ -402,11 +413,11 @@ const styles = StyleSheet.create({
   },
   sliderThumb: {
     position: 'absolute',
-    top: -6,
-    width: 28,
-    height: 28,
-    marginLeft: -14,
-    borderRadius: 14,
+    top: -10,
+    width: 36,
+    height: 36,
+    marginLeft: -18,
+    borderRadius: 18,
     backgroundColor: 'white',
     borderWidth: 2,
     borderColor: theme.colors.primary,
@@ -415,6 +426,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sliderThumbEmoji: {
+    fontSize: 18,
   },
   sliderHintsRow: {
     flexDirection: 'row',

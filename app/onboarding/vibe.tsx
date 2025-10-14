@@ -145,7 +145,9 @@ export default function VibeScreen() {
                     <View key={`tick-${i}`} style={[styles.tick, politicsIndex === i && styles.tickActive]} />
                   ))}
                 </View>
-                <View style={[styles.knob, { left: Math.max(0, trackWidth > 0 ? 12 + ((trackWidth - 24) * (politicsIndex / 2)) - 14 : 0) }]} />
+                <View style={[styles.knob, { left: Math.max(0, trackWidth > 0 ? 12 + ((trackWidth - 24) * (politicsIndex / 2)) - 14 : 0) }]}>
+                  <Text style={styles.knobEmoji}>{politicsIndex === 0 ? '🌈' : politicsIndex === 1 ? '🤝' : '🛡️'}</Text>
+                </View>
               </View>
               <View style={styles.sliderLabels}>
                 <Text style={styles.sliderLabelLeft}>Progressive</Text>
@@ -333,10 +335,16 @@ const styles = StyleSheet.create({
   knob: {
     position: 'absolute',
     top: 4,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  knobEmoji: {
+    fontSize: 16,
+    color: 'white',
   },
   sliderLabels: {
     flexDirection: 'row',
