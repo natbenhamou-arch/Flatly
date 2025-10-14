@@ -157,7 +157,7 @@ export default function PreferencesScreen() {
             languageMatchOnly
           }
         });
-        router.push('./review-create');
+        router.push('./media');
       }
     } catch (error) {
       console.error('Error handling preferences:', error);
@@ -202,7 +202,7 @@ export default function PreferencesScreen() {
             languageMatchOnly: false
           }
         });
-        router.push('./review-create');
+        router.push('./media');
       }
     } catch (error) {
       console.error('Error saving default preferences:', error);

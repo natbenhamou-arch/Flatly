@@ -71,7 +71,7 @@ export default function VibeScreen() {
       }
     });
     
-    router.push('./media');
+    router.push('./preferences');
   };
 
   return (

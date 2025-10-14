@@ -191,7 +191,7 @@ export default function MediaScreen() {
       tiktokUrl: tiktokUrl.trim() || undefined
     });
     
-    router.push('./preferences');
+    router.push('./review-create');
   };
 
   return (

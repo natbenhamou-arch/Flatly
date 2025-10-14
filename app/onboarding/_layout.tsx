@@ -10,8 +10,8 @@ const ONBOARDING_STEPS = [
   'interests',
   'lifestyle',
   'vibe',
-  'media',
   'preferences',
+  'media',
   'review-create'
 ];
 
@@ -22,8 +22,8 @@ const STEP_TITLES = [
   'Interests',
   'Lifestyle', 
   'Vibe Questionnaire',
-  'Photos & Media',
   'Matching Preferences',
+  'Photos & Media',
   'Create Account'
 ];
 
@@ -58,8 +58,8 @@ export default function OnboardingLayout() {
       <Stack.Screen name="interests" />
       <Stack.Screen name="lifestyle" />
       <Stack.Screen name="vibe" />
-      <Stack.Screen name="media" />
       <Stack.Screen name="preferences" />
+      <Stack.Screen name="media" />
       <Stack.Screen name="review-create" />
     </Stack>
   );

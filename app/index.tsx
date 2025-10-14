@@ -24,7 +24,7 @@ export default function IndexScreen() {
         if (hasCompletedOnboarding) {
           router.replace('/(tabs)/discover');
         } else {
-          router.replace('/onboarding');
+          router.replace('/onboarding/full-name');
         }
       }, 0);
       
@@ -48,8 +48,12 @@ export default function IndexScreen() {
     }
   }, [setCurrentUser, setOnboardingCompleted]);
 
-  const handleEmail = useCallback(() => {
+  const handleSignIn = useCallback(() => {
     router.push('/signin');
+  }, []);
+
+  const handleSignUp = useCallback(() => {
+    router.push('/signup');
   }, []);
 
   if (isLoading) {
@@ -92,33 +96,48 @@ export default function IndexScreen() {
           </View>
 
           <View style={styles.actions}>
+            <Text style={styles.actionTitle}>Sign Up</Text>
             <TouchableOpacity
               style={styles.socialButton}
               onPress={() => handleProvider('apple')}
-              testID="apple-signin-button"
+              testID="apple-signup-button"
             >
               <Apple size={20} color="#000" />
-              <Text style={styles.socialButtonText}>Continue with Apple</Text>
+              <Text style={styles.socialButtonText}>Sign up with Apple</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.socialButton}
               onPress={() => handleProvider('google')}
-              testID="google-signin-button"
+              testID="google-signup-button"
             >
               <View style={styles.googleIcon}>
                 <Text style={styles.googleG}>G</Text>
               </View>
-              <Text style={styles.socialButtonText}>Continue with Google</Text>
+              <Text style={styles.socialButtonText}>Sign up with Google</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.socialButton}
-              onPress={handleEmail}
-              testID="email-signin-button"
+              onPress={handleSignUp}
+              testID="email-signup-button"
             >
               <Image source={{ uri: 'https://cdn.simpleicons.org/maildotru/000000' }} style={styles.mailIcon} />
-              <Text style={styles.socialButtonText}>Continue with Email</Text>
+              <Text style={styles.socialButtonText}>Sign up with Email</Text>
+            </TouchableOpacity>
+
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <TouchableOpacity
+              style={styles.signInButton}
+              onPress={handleSignIn}
+              testID="signin-button"
+            >
+              <Text style={styles.signInButtonText}>Already have an account? Sign In</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -214,6 +233,44 @@ const getStyles = () => StyleSheet.create({
   actions: {
     gap: 12,
     paddingBottom: 32,
+  },
+  actionTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: '#111827',
+    textAlign: 'center' as const,
+    marginBottom: 4,
+    fontFamily: 'Montserrat-SemiBold',
+  },
+  divider: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    marginVertical: 8,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginHorizontal: 12,
+    fontFamily: 'Montserrat-Regular',
+  },
+  signInButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    backgroundColor: 'transparent',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  signInButtonText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: '#2563EB',
+    fontFamily: 'Montserrat-SemiBold',
   },
   socialButton: {
     flexDirection: 'row' as const,
