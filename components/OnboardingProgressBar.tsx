@@ -16,12 +16,29 @@ export function OnboardingProgressBar({ currentStep, totalSteps, stepTitles }: O
   const pathname = usePathname();
   
   const handleBack = () => {
-    // If we're on the first onboarding step, go back to the main page
-    if (currentStep === 1 || pathname.includes('/onboarding/index')) {
+    const steps = [
+      'full-name',
+      'school-city',
+      'housing',
+      'interests',
+      'lifestyle',
+      'vibe',
+      'preferences',
+      'media',
+      'review-create',
+    ];
+
+    const parts = pathname.split('/');
+    const last = parts[parts.length - 1] || '';
+    const idx = steps.indexOf(last);
+
+    if (idx <= 0) {
       router.replace('/');
-    } else {
-      router.back();
+      return;
     }
+
+    const prev = steps[idx - 1];
+    router.replace(`/onboarding/${prev}`);
   };
 
   return (

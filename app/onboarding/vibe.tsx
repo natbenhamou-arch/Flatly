@@ -13,23 +13,10 @@ export default function VibeScreen() {
   const [showReligion, setShowReligion] = useState<boolean>(onboardingUser?.lifestyle?.showReligion ?? false);
   const [politicalView, setPoliticalView] = useState<Lifestyle['politicalView']>(onboardingUser?.lifestyle?.politicalView ?? undefined);
   const [showPoliticalView, setShowPoliticalView] = useState<boolean>(onboardingUser?.lifestyle?.showPoliticalView ?? false);
+  const [politicsPercent, setPoliticsPercent] = useState<number>(typeof onboardingUser?.lifestyle?.politicsPercent === 'number' ? (onboardingUser?.lifestyle as any).politicsPercent : 50);
   const [religiousChoice, setReligiousChoice] = useState<Lifestyle['religiousChoice']>(onboardingUser?.lifestyle?.religiousChoice ?? undefined);
   const [moneyStyle, setMoneyStyle] = useState<Lifestyle['moneyStyle']>(onboardingUser?.lifestyle?.moneyStyle ?? undefined);
 
-  const initialPoliticalIndex = useMemo(() => {
-    switch (politicalView) {
-      case 'progressive':
-        return 0;
-      case 'centrist':
-        return 1;
-      case 'conservative':
-        return 2;
-      default:
-        return 1;
-    }
-  }, [politicalView]);
-
-  const [politicsIndex, setPoliticsIndex] = useState<number>(initialPoliticalIndex);
   const [trackWidth, setTrackWidth] = useState<number>(0);
   const onTrackLayout = (e: LayoutChangeEvent) => {
     setTrackWidth(e.nativeEvent.layout.width);
@@ -42,21 +29,22 @@ export default function VibeScreen() {
       const x = (evt.nativeEvent as any).locationX as number;
       const w = trackWidth || 1;
       const ratio = Math.max(0, Math.min(1, x / w));
-      const idx = ratio < 0.33 ? 0 : ratio < 0.66 ? 1 : 2;
-      setPoliticsIndex(idx);
+      const percent = Math.round(ratio * 100);
+      setPoliticsPercent(percent);
     },
     onPanResponderMove: (evt) => {
       const x = (evt.nativeEvent as any).locationX as number;
       const w = trackWidth || 1;
       const ratio = Math.max(0, Math.min(1, x / w));
-      const idx = ratio < 0.33 ? 0 : ratio < 0.66 ? 1 : 2;
-      setPoliticsIndex(idx);
+      const percent = Math.round(ratio * 100);
+      setPoliticsPercent(percent);
     },
     onPanResponderRelease: () => {
-      const map: Lifestyle['politicalView'][] = ['progressive', 'centrist', 'conservative'];
-      setPoliticalView(map[politicsIndex]);
+      const p = politicsPercent;
+      const view: Lifestyle['politicalView'] = p < 33 ? 'progressive' : p < 66 ? 'centrist' : 'conservative';
+      setPoliticalView(view);
     },
-  }), [politicsIndex, trackWidth]);
+  }), [politicsPercent, trackWidth]);
 
   const handleContinue = () => {
     updateOnboardingUser({ 
@@ -68,7 +56,8 @@ export default function VibeScreen() {
         showPoliticalView,
         religiousChoice,
         moneyStyle,
-      }
+        politicsPercent,
+      } as Lifestyle & { politicsPercent: number }
     });
     
     router.push('./preferences');
@@ -140,13 +129,9 @@ export default function VibeScreen() {
             <Text style={styles.sectionTitle}>Politics</Text>
             <View style={styles.sliderContainer}>
               <View style={styles.sliderTrack} onLayout={onTrackLayout} {...panResponder.panHandlers} testID="politics-slider">
-                <View style={styles.sliderTickRow} pointerEvents="none">
-                  {[0, 1, 2].map((i) => (
-                    <View key={`tick-${i}`} style={[styles.tick, politicsIndex === i && styles.tickActive]} />
-                  ))}
-                </View>
-                <View style={[styles.knob, { left: Math.max(0, trackWidth > 0 ? 12 + ((trackWidth - 24) * (politicsIndex / 2)) - 14 : 0) }]}>
-                  <Text style={styles.knobEmoji}>{politicsIndex === 0 ? '🌈' : politicsIndex === 1 ? '🤝' : '🛡️'}</Text>
+                <View style={[styles.fill, { width: `${politicsPercent}%` }]} />
+                <View style={[styles.knob, { left: Math.max(0, trackWidth > 0 ? (trackWidth * (politicsPercent / 100)) - 16 : 0) }]}>
+                  <Text style={styles.knobEmoji}>{politicsPercent < 33 ? '🌈' : politicsPercent < 66 ? '🤝' : '🛡️'}</Text>
                 </View>
               </View>
               <View style={styles.sliderLabels}>
@@ -154,6 +139,14 @@ export default function VibeScreen() {
                 <Text style={styles.sliderLabelCenter}>Center</Text>
                 <Text style={styles.sliderLabelRight}>Conservative</Text>
               </View>
+              <View style={styles.emojiRow}>
+                {Array.from({ length: Math.max(1, Math.round(politicsPercent / 10)) }).map((_, i) => (
+                  <Text key={`pct-emoji-${i}`} style={styles.pctEmoji}>
+                    {politicsPercent < 33 ? '🌈' : politicsPercent < 66 ? '🤝' : '🛡️'}
+                  </Text>
+                ))}
+              </View>
+              <Text style={styles.percentText}>{politicsPercent}%</Text>
             </View>
             <View style={styles.switchRow}>
               <Text style={styles.switchLabel}>Show political view in my profile</Text>
@@ -314,27 +307,20 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.colors.text.secondary + '30',
     justifyContent: 'center',
-    paddingHorizontal: 12,
+    overflow: 'visible',
   },
-  sliderTickRow: {
+  fill: {
     position: 'absolute',
-    left: 12,
-    right: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  tick: {
-    width: 2,
-    height: 12,
-    backgroundColor: theme.colors.text.secondary + '50',
-  },
-  tickActive: {
-    backgroundColor: theme.colors.primary,
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: theme.colors.primary + '33',
+    borderTopLeftRadius: 18,
+    borderBottomLeftRadius: 18,
   },
   knob: {
     position: 'absolute',
-    top: 4,
+    top: -8,
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -349,6 +335,7 @@ const styles = StyleSheet.create({
   sliderLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: 6,
   },
   sliderLabelLeft: {
     fontSize: 12,
@@ -408,6 +395,21 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     marginTop: 16,
     ...theme.shadows.button,
+  },
+  emojiRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 8,
+  },
+  pctEmoji: {
+    fontSize: 16,
+  },
+  percentText: {
+    marginTop: 4,
+    textAlign: 'center',
+    color: theme.colors.text.secondary,
+    fontWeight: '600',
   },
   continueButtonText: {
     fontSize: 18,

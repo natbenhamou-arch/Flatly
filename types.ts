@@ -63,6 +63,8 @@ export interface Lifestyle {
   // New language & nationality fields
   languages?: string[];
   nationalities?: string[];
+  // Politics granularity percentage 0-100 (0 progressive, 50 center, 100 conservative)
+  politicsPercent?: number;
 }
 
 // Housing & Room Details

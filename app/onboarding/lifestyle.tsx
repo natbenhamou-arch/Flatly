@@ -269,16 +269,18 @@ function SliderRow({
     () =>
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
         onPanResponderGrant: (evt) => {
-          const x = evt.nativeEvent.locationX;
+          const x = (evt.nativeEvent as any).locationX as number;
           const next = clamp(Math.round((x / Math.max(trackWidthRef.current, 1)) * 10));
           setLocal(next);
           onChange(next);
         },
-        onPanResponderMove: (evt, gesture) => {
-          const x = (gesture.moveX - (evt.nativeEvent.pageX - evt.nativeEvent.locationX));
+        onPanResponderMove: (evt) => {
+          const x = (evt.nativeEvent as any).locationX as number;
           const next = clamp(Math.round((x / Math.max(trackWidthRef.current, 1)) * 10));
           setLocal(next);
+          onChange(next);
         },
         onPanResponderRelease: () => {
           onChange(local);
@@ -402,7 +404,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderWidth: 1,
     borderColor: theme.colors.text.secondary + '30',
-    overflow: 'hidden',
+    overflow: 'visible',
   },
   sliderFill: {
     position: 'absolute',
@@ -413,7 +415,7 @@ const styles = StyleSheet.create({
   },
   sliderThumb: {
     position: 'absolute',
-    top: -10,
+    top: -22,
     width: 36,
     height: 36,
     marginLeft: -18,
