@@ -113,6 +113,7 @@ export default function LifestyleScreen() {
 
             <SliderRow
               label="Cleanliness"
+              category="cleanliness"
               value={cleanlinessScore}
               onChange={setCleanlinessScore}
               leftHint="Chill"
@@ -122,6 +123,7 @@ export default function LifestyleScreen() {
 
             <SliderRow
               label="Sleep rhythm"
+              category="sleep"
               value={sleepRhythmScore}
               onChange={setSleepRhythmScore}
               leftHint="Early"
@@ -131,6 +133,7 @@ export default function LifestyleScreen() {
 
             <SliderRow
               label="Guests"
+              category="guests"
               value={guestsScore}
               onChange={setGuestsScore}
               leftHint="Never"
@@ -140,6 +143,7 @@ export default function LifestyleScreen() {
 
             <SliderRow
               label="Noise tolerance"
+              category="noise"
               value={noiseLevelScore}
               onChange={setNoiseLevelScore}
               leftHint="Low"
@@ -243,6 +247,7 @@ export default function LifestyleScreen() {
 
 function SliderRow({
   label,
+  category,
   value,
   onChange,
   leftHint,
@@ -250,6 +255,7 @@ function SliderRow({
   testID,
 }: {
   label: string;
+  category: 'cleanliness' | 'sleep' | 'guests' | 'noise';
   value: number;
   onChange: (v: number) => void;
   leftHint?: string;
@@ -293,23 +299,46 @@ function SliderRow({
   const percentText = `${fillPercent * 100}%`;
 
   const emoji = useMemo(() => {
-    if (fillPercent <= 0.2) return '🥱';
-    if (fillPercent <= 0.4) return '🙂';
-    if (fillPercent <= 0.6) return '😄';
-    if (fillPercent <= 0.8) return '🤩';
-    return '🏆';
-  }, [fillPercent]);
+    const p = fillPercent;
+    switch (category) {
+      case 'cleanliness':
+        if (p <= 0.2) return '😅'; // chill
+        if (p <= 0.4) return '🧹';
+        if (p <= 0.6) return '🧼';
+        if (p <= 0.8) return '🧽';
+        return '✨';
+      case 'sleep':
+        if (p <= 0.2) return '🌅'; // early
+        if (p <= 0.4) return '😴';
+        if (p <= 0.6) return '🌙';
+        if (p <= 0.8) return '🦉';
+        return '🌃';
+      case 'guests':
+        if (p <= 0.2) return '🙅‍♂️'; // never
+        if (p <= 0.4) return '🙂';
+        if (p <= 0.6) return '👥';
+        if (p <= 0.8) return '🎈';
+        return '🎉';
+      case 'noise':
+      default:
+        if (p <= 0.2) return '🤫'; // low
+        if (p <= 0.4) return '🎧';
+        if (p <= 0.6) return '🙂';
+        if (p <= 0.8) return '📣';
+        return '🔊';
+    }
+  }, [fillPercent, category]);
 
   return (
     <View style={styles.preferenceGroup} testID={testID}>
       <View style={styles.sliderHeaderRow}>
         <Text style={styles.preferenceLabel}>{label}</Text>
-        <View style={styles.valueBubble}>
-          <Text style={styles.valueBubbleText}>{local} {emoji}</Text>
-        </View>
       </View>
       <View style={styles.sliderTrack} onLayout={onLayout} {...panResponder.panHandlers}>
         <View style={[styles.sliderFill, { width: percentText, backgroundColor: `rgba(37,99,235,${0.2 + 0.6 * fillPercent})` }]} />
+        <View style={[styles.valueBubbleFloating, { left: percentText }]}> 
+          <Text style={styles.valueBubbleText}>{local} {emoji}</Text>
+        </View>
         <View style={[styles.sliderThumb, { left: percentText }]}> 
           <Text style={styles.sliderThumbEmoji}>{emoji}</Text>
         </View>
@@ -405,6 +434,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.text.secondary + '30',
     overflow: 'visible',
+    position: 'relative',
   },
   sliderFill: {
     position: 'absolute',
@@ -448,6 +478,19 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     backgroundColor: theme.colors.primary,
     borderRadius: 12,
+  },
+  valueBubbleFloating: {
+    position: 'absolute',
+    top: -38,
+    marginLeft: -24,
+    minWidth: 48,
+    height: 28,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   valueBubbleText: {
     fontSize: 12,
