@@ -129,22 +129,15 @@ export default function VibeScreen() {
             <Text style={styles.sectionTitle}>Politics</Text>
             <View style={styles.sliderContainer}>
               <View style={styles.sliderTrack} onLayout={onTrackLayout} {...panResponder.panHandlers} testID="politics-slider">
-                <View style={[styles.fill, { width: `${politicsPercent}%` }]} />
-                <View style={[styles.knob, { left: Math.max(0, trackWidth > 0 ? (trackWidth * (politicsPercent / 100)) - 16 : 0) }]}>
-                  <Text style={styles.knobEmoji}>{politicsPercent < 33 ? '🌈' : politicsPercent < 66 ? '🤝' : '🛡️'}</Text>
+                <View style={[styles.fill, { width: `${politicsPercent}%`, backgroundColor: politicsPercent < 33 ? '#60a5fa' : politicsPercent < 66 ? '#a78bfa' : '#f87171' }]} />
+                <View style={[styles.knob, { left: Math.max(0, trackWidth > 0 ? (trackWidth * (politicsPercent / 100)) - 16 : 0), borderColor: politicsPercent < 33 ? '#60a5fa' : politicsPercent < 66 ? '#a78bfa' : '#f87171' }]}>
+                  <View style={[styles.knobDot, { backgroundColor: politicsPercent < 33 ? '#60a5fa' : politicsPercent < 66 ? '#a78bfa' : '#f87171' }]} />
                 </View>
               </View>
               <View style={styles.sliderLabels}>
                 <Text style={styles.sliderLabelLeft}>Progressive</Text>
                 <Text style={styles.sliderLabelCenter}>Center</Text>
                 <Text style={styles.sliderLabelRight}>Conservative</Text>
-              </View>
-              <View style={styles.emojiRow}>
-                {Array.from({ length: Math.max(1, Math.round(politicsPercent / 10)) }).map((_, i) => (
-                  <Text key={`pct-emoji-${i}`} style={styles.pctEmoji}>
-                    {politicsPercent < 33 ? '🌈' : politicsPercent < 66 ? '🤝' : '🛡️'}
-                  </Text>
-                ))}
               </View>
               <Text style={styles.percentText}>{politicsPercent}%</Text>
             </View>
@@ -320,17 +313,20 @@ const styles = StyleSheet.create({
   },
   knob: {
     position: 'absolute',
-    top: -8,
+    top: 2,
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  knobEmoji: {
-    fontSize: 16,
-    color: 'white',
+  knobDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
   sliderLabels: {
     flexDirection: 'row',

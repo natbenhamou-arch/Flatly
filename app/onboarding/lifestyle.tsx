@@ -336,8 +336,8 @@ function SliderRow({
       </View>
       <View style={styles.sliderTrack} onLayout={onLayout} {...panResponder.panHandlers}>
         <View style={[styles.sliderFill, { width: percentText, backgroundColor: `rgba(37,99,235,${0.2 + 0.6 * fillPercent})` }]} />
-        <View style={[styles.valueBubbleFloating, { left: percentText }]}> 
-          <Text style={styles.valueBubbleText}>{local} {emoji}</Text>
+        <View style={[styles.valueBubbleFloating]}> 
+          <Text style={styles.valueBubbleText}>{local}</Text>
         </View>
         <View style={[styles.sliderThumb, { left: percentText }]}> 
           <Text style={styles.sliderThumbEmoji}>{emoji}</Text>
@@ -445,11 +445,11 @@ const styles = StyleSheet.create({
   },
   sliderThumb: {
     position: 'absolute',
-    top: -22,
-    width: 36,
-    height: 36,
-    marginLeft: -18,
-    borderRadius: 18,
+    top: -6,
+    width: 28,
+    height: 28,
+    marginLeft: -14,
+    borderRadius: 14,
     backgroundColor: 'white',
     borderWidth: 2,
     borderColor: theme.colors.primary,
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
   valueBubbleFloating: {
     position: 'absolute',
     top: -38,
-    marginLeft: -24,
+    right: 0,
     minWidth: 48,
     height: 28,
     paddingHorizontal: 10,
