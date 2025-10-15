@@ -436,20 +436,13 @@ export default function PreferencesScreen() {
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity
-                style={styles.skipButton}
-                onPress={handleSkip}
-                disabled={isLoading}
-              >
-                <Text style={styles.skipButtonText}>Skip for now</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
                 style={[
                   styles.completeButton,
                   (!canComplete || isLoading) && styles.completeButtonDisabled
                 ]}
                 onPress={handleComplete}
                 disabled={!canComplete || isLoading}
+                testID="continue-button"
               >
                 <Text style={styles.completeButtonText}>
                   {isLoading ? 'Saving...' : isEditMode ? 'Save' : 'Continue'}
@@ -596,24 +589,16 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   skipButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: theme.borderRadius,
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    alignItems: 'center',
+    display: 'none' as any,
   },
   skipButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.text.secondary,
+    display: 'none' as any,
   },
   completeButton: {
     paddingVertical: 18,
     paddingHorizontal: 32,
     borderRadius: theme.borderRadius,
-    backgroundColor: theme.colors.success,
+    backgroundColor: theme.colors.primary,
     alignItems: 'center',
     ...theme.shadows.button,
   },

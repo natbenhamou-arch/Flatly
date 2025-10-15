@@ -61,6 +61,7 @@ export default function ChatScreen() {
   const [showReportInput, setShowReportInput] = useState<boolean>(false);
   const [showSafetyBanner, setShowSafetyBanner] = useState<boolean>(true);
   const [optimistic, setOptimistic] = useState<Message[]>([]);
+  const [imageViewerUri, setImageViewerUri] = useState<string | null>(null);
   
   const flatListRef = useRef<FlatList>(null);
 
@@ -292,7 +293,9 @@ export default function ChatScreen() {
             {item.body}
           </Text>
           {item.imageUrl && (
-            <Image source={{ uri: item.imageUrl }} style={styles.messageImage} />
+            <TouchableOpacity onPress={() => setImageViewerUri(item.imageUrl!)}>
+              <Image source={{ uri: item.imageUrl }} style={styles.messageImage} />
+            </TouchableOpacity>
           )}
         </ClayCard>
         <Text style={styles.messageTime}>
@@ -568,7 +571,55 @@ export default function ChatScreen() {
       <View style={styles.inputContainer}>
         <ClayCard style={styles.inputCard}>
           <View style={styles.inputRow}>
-            <TouchableOpacity style={styles.imageButton}>
+            <TouchableOpacity style={styles.imageButton} onPress={async () => {
+              try {
+                if (Platform.OS === 'web') {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*';
+                  input.onchange = async () => {
+                    const file = (input.files && input.files[0]) || null;
+                    if (!file) return;
+                    const url = URL.createObjectURL(file);
+                    const temp: Message = {
+                      id: `local-img-${Date.now()}`,
+                      matchId: matchId || '',
+                      senderId: currentUser?.id || 'me',
+                      body: '',
+                      createdAt: new Date().toISOString(),
+                      imageUrl: url,
+                    } as Message;
+                    setOptimistic(prev => [...prev, temp]);
+                    await sendMessage(matchId || '', `[image:${url}]`);
+                  };
+                  input.click();
+                } else {
+                  const ImagePicker = await import('expo-image-picker');
+                  const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                  if (perm.status !== 'granted') {
+                    Alert.alert('Permission required', 'Please grant photo library access');
+                    return;
+                  }
+                  const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8 });
+                  if (!result.canceled && result.assets && result.assets.length > 0) {
+                    const uri = result.assets[0].uri;
+                    const temp: Message = {
+                      id: `local-img-${Date.now()}`,
+                      matchId: matchId || '',
+                      senderId: currentUser?.id || 'me',
+                      body: '',
+                      createdAt: new Date().toISOString(),
+                      imageUrl: uri,
+                    } as Message;
+                    setOptimistic(prev => [...prev, temp]);
+                    await sendMessage(matchId || '', `[image:${uri}]`);
+                  }
+                }
+              } catch (e) {
+                console.log('Image select failed', e);
+                Alert.alert('Error', 'Could not pick an image');
+              }
+            }}>
               <ImageIcon color={colors.textSecondary} size={24} />
             </TouchableOpacity>
             
@@ -633,6 +684,12 @@ export default function ChatScreen() {
         visible={profileModalVisible}
         onClose={() => setProfileModalVisible(false)}
       />
+
+      <Modal visible={!!imageViewerUri} transparent animationType="fade" onRequestClose={() => setImageViewerUri(null)}>
+        <TouchableOpacity style={styles.viewerOverlay} activeOpacity={1} onPress={() => setImageViewerUri(null)}>
+          {imageViewerUri ? <Image source={{ uri: imageViewerUri }} style={styles.viewerImage} /> : null}
+        </TouchableOpacity>
+      </Modal>
 
       <Modal visible={showCreateGroup} transparent animationType="slide" onRequestClose={() => setShowCreateGroup(false)}>
         <View style={styles.groupOverlay}>
@@ -731,6 +788,17 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 12,
     marginTop: spacing.sm,
+  },
+  viewerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  viewerImage: {
+    width: '90%',
+    height: '70%',
+    resizeMode: 'contain',
   },
   messageTime: {
     fontSize: 12,

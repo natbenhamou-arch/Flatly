@@ -325,9 +325,9 @@ export default function DiscoverScreen() {
           </View>
         ) : null}
         <View style={styles.emptyState}>
-          <Text style={styles.emptyTitle}>You&apos;re all caught up!</Text>
+          <Text style={styles.emptyTitle}>No new roommates nearby</Text>
           <Text style={styles.emptySubtitle}>
-            Check back later for new roommate matches, or expand your search filters.
+            Expand your city or preferences to find more.
           </Text>
           <ClayButton
             title="Refresh"

@@ -526,8 +526,11 @@ export async function getFeedUsers(currentUserId: string, limit: number = 20): P
 
   // Apply radius filter clearly using preferences.maxDistanceKm
   const radiusFiltered = feedUsersWithData.filter(u => {
+    if (preferences.cityOnly && u.city !== currentUser.city) return false;
     if (typeof u.distance !== 'number') return true;
-    return u.distance <= preferences.maxDistanceKm;
+    const maxKm = typeof preferences.maxDistanceKm === 'number' ? preferences.maxDistanceKm : 0;
+    const effectiveRadius = maxKm > 0 ? Math.min(maxKm, 20) : 20;
+    return u.distance <= effectiveRadius;
   });
 
   
@@ -554,7 +557,9 @@ export async function getFeedUsers(currentUserId: string, limit: number = 20): P
     (b.compatibility?.score || 0) - (a.compatibility?.score || 0)
   );
   
-  const feedUsers = feedWithCompatibility.slice(0, limit);
+  const minScore = 60;
+  const filteredByScore = feedWithCompatibility.filter(u => (u.compatibility?.score ?? 0) >= minScore);
+  const feedUsers = filteredByScore.slice(0, limit);
 
   return feedUsers;
 }

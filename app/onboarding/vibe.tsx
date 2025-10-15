@@ -134,6 +134,11 @@ export default function VibeScreen() {
                   <View style={[styles.knobDot, { backgroundColor: politicsPercent < 33 ? '#60a5fa' : politicsPercent < 66 ? '#a78bfa' : '#f87171' }]} />
                 </View>
               </View>
+              <View style={styles.emojiGuideRow}>
+                <Text style={styles.guideEmoji}>🌱</Text>
+                <Text style={styles.guideEmoji}>⚖️</Text>
+                <Text style={styles.guideEmoji}>🦅</Text>
+              </View>
               <View style={styles.sliderLabels}>
                 <Text style={styles.sliderLabelLeft}>Progressive</Text>
                 <Text style={styles.sliderLabelCenter}>Center</Text>
@@ -301,6 +306,11 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.text.secondary + '30',
     justifyContent: 'center',
     overflow: 'visible',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 6,
   },
   fill: {
     position: 'absolute',
@@ -322,6 +332,11 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 8,
   },
   knobDot: {
     width: 12,
@@ -406,6 +421,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: theme.colors.text.secondary,
     fontWeight: '600',
+  },
+  emojiGuideRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+    paddingHorizontal: 6,
+  },
+  guideEmoji: {
+    fontSize: 14,
+    opacity: 0.8,
   },
   continueButtonText: {
     fontSize: 18,

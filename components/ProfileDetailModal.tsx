@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -47,11 +47,12 @@ export function ProfileDetailModal({
   onClose,
 }: ProfileDetailModalProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [isMatched, setIsMatched] = useState<boolean>(false);
   const [reportReason, setReportReason] = useState<string>('');
   const [showReportInput, setShowReportInput] = useState<boolean>(false);
   const { currentUser } = useAppStore();
 
-  if (!user) return null;
+
 
   const handleReport = () => {
     setShowReportInput(true);
@@ -100,6 +101,38 @@ export function ProfileDetailModal({
       ]
     );
   };
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        if (!currentUser || !user) return;
+        const { getMatchesByUser } = await import('@/services/data');
+        const matches = await getMatchesByUser(currentUser.id);
+        const matched = matches.some(m => m.users.includes(user.id));
+        if (mounted) setIsMatched(matched);
+      } catch (e) {
+        console.log('Failed to check match status', e);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [currentUser, user]);
+
+  if (!user) {
+    return (
+      <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+        <SafeAreaView style={styles.container}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton} testID="close-full-profile">
+              <X size={24} color={colors.textPrimary} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Profile</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+        </SafeAreaView>
+      </Modal>
+    );
+  }
 
   const renderPhotoCarousel = () => {
     if (!user.photos || user.photos.length === 0) return null;
@@ -340,23 +373,36 @@ export function ProfileDetailModal({
   const renderSocialLinks = () => {
     if (!user.igUrl && !user.linkedinUrl) return null;
 
+    const lockedNote = '🔒 Social links unlock after a match.';
+
     return (
       <ClayCard style={styles.section}>
         <Text style={styles.sectionTitle}>Social</Text>
         <View style={styles.socialContainer}>
           {user.igUrl && (
-            <TouchableOpacity style={styles.socialLink} onPress={() => Linking.openURL(user.igUrl!)}>
-              <Instagram size={20} color={colors.textPrimary} />
-              <Text style={styles.socialText}>Instagram</Text>
-              <ExternalLink size={16} color={colors.textSecondary} />
+            <TouchableOpacity
+              disabled={!isMatched}
+              style={[styles.socialLink, !isMatched ? styles.socialLinkLocked : null]}
+              onPress={() => Linking.openURL(user.igUrl!)}
+            >
+              <Instagram size={20} color={!isMatched ? colors.textSecondary : colors.textPrimary} />
+              <Text style={[styles.socialText, !isMatched ? styles.socialTextLocked : null]}>Instagram</Text>
+              <ExternalLink size={16} color={!isMatched ? colors.textSecondary : colors.textSecondary} />
             </TouchableOpacity>
           )}
           {user.linkedinUrl && (
-            <TouchableOpacity style={styles.socialLink} onPress={() => Linking.openURL(user.linkedinUrl!)}>
-              <Linkedin size={20} color={colors.textPrimary} />
-              <Text style={styles.socialText}>LinkedIn</Text>
-              <ExternalLink size={16} color={colors.textSecondary} />
+            <TouchableOpacity
+              disabled={!isMatched}
+              style={[styles.socialLink, !isMatched ? styles.socialLinkLocked : null]}
+              onPress={() => Linking.openURL(user.linkedinUrl!)}
+            >
+              <Linkedin size={20} color={!isMatched ? colors.textSecondary : colors.textPrimary} />
+              <Text style={[styles.socialText, !isMatched ? styles.socialTextLocked : null]}>LinkedIn</Text>
+              <ExternalLink size={16} color={!isMatched ? colors.textSecondary : colors.textSecondary} />
             </TouchableOpacity>
+          )}
+          {!isMatched && (
+            <Text style={styles.socialLockedNote}>{lockedNote}</Text>
           )}
         </View>
       </ClayCard>
@@ -671,6 +717,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.softLilac,
     borderRadius: radius.medium,
     gap: spacing.sm,
+  },
+  socialLinkLocked: {
+    opacity: 0.6,
+  },
+  socialTextLocked: {
+    color: colors.textSecondary,
+  },
+  socialLockedNote: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
   socialText: {
     fontSize: 16,

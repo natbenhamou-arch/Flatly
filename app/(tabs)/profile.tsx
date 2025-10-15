@@ -770,6 +770,16 @@ export default function ProfileScreen() {
             <Text style={styles.sectionTitle}>Account</Text>
           </View>
 
+          <ClayButton
+            title="Save my account"
+            onPress={() => {
+              showToast('Account synced securely', 'success');
+            }}
+            variant="primary"
+            style={{ marginBottom: spacing.sm }}
+            testID="save-account"
+          />
+
           {/* Pause Profile */}
           <View style={styles.pauseRow}>
             <View style={styles.pauseInfo}>

@@ -6,7 +6,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { Heart } from 'lucide-react-native';
+import { Sparkles } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
 
 interface MatchAnimationProps {
@@ -22,7 +22,7 @@ export function MatchAnimation({ visible, onComplete }: MatchAnimationProps) {
   const scaleAnim = useRef(new Animated.Value(0.3)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
   const confettiAnims = useRef(
-    Array.from({ length: 12 }, () => ({
+    Array.from({ length: 8 }, () => ({
       translateY: new Animated.Value(0),
       translateX: new Animated.Value(0),
       rotate: new Animated.Value(0),
@@ -187,23 +187,22 @@ export function MatchAnimation({ visible, onComplete }: MatchAnimationProps) {
 
       {confettiAnims.slice(0, 6).map((anim, index) => (
         <Animated.View
-          key={`heart-${index}`}
+          key={`spark-${index}`}
           style={[
-            styles.heartParticle,
+            styles.sparkleParticle,
             {
               opacity: anim.opacity,
               transform: [
                 { translateX: anim.translateX },
                 { translateY: anim.translateY },
-                { scale: 0.5 + Math.random() * 0.5 },
+                { scale: 0.7 + Math.random() * 0.3 },
               ],
             },
           ]}
         >
-          <Heart
+          <Sparkles
             color={confettiColors[index % confettiColors.length]}
-            size={16}
-            fill={confettiColors[index % confettiColors.length]}
+            size={18}
           />
         </Animated.View>
       ))}
@@ -273,7 +272,7 @@ const styles = StyleSheet.create({
     top: height / 2,
     left: width / 2,
   },
-  heartParticle: {
+  sparkleParticle: {
     position: 'absolute',
     top: height / 2,
     left: width / 2,

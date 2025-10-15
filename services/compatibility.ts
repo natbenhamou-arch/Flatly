@@ -57,13 +57,13 @@ export function computeCompatibility(input: CompatibilityInput): CompatibilityRe
   // Same City (+25) - Most important
   if (currentUser.city === targetUser.city) {
     score += WEIGHTS.SAME_CITY;
-    reasons.push({ text: `Both in ${currentUser.city}`, weight: WEIGHTS.SAME_CITY });
+    reasons.push({ text: `📍 Both in ${currentUser.city}`, weight: WEIGHTS.SAME_CITY });
   }
 
   // University Match (+20)
   if (currentUser.university === targetUser.university) {
     score += WEIGHTS.UNIVERSITY;
-    reasons.push({ text: `Both study at ${currentUser.university}`, weight: WEIGHTS.UNIVERSITY });
+    reasons.push({ text: `🎓 Both at ${currentUser.university}`, weight: WEIGHTS.UNIVERSITY });
   }
 
   // Language Compatibility (strong weight)
@@ -85,7 +85,7 @@ export function computeCompatibility(input: CompatibilityInput): CompatibilityRe
     const add = WEIGHTS.CLEANLINESS * proximity;
     if (add > 0) {
       score += add;
-      reasons.push({ text: 'Similar cleanliness expectations', weight: add });
+      reasons.push({ text: '✨ Similar cleanliness expectations', weight: add });
     }
   } else if (currentLifestyle?.cleanliness && targetLifestyle?.cleanliness) {
     if (currentLifestyle.cleanliness === targetLifestyle.cleanliness) {
@@ -106,7 +106,7 @@ export function computeCompatibility(input: CompatibilityInput): CompatibilityRe
     const add = WEIGHTS.SLEEP * proximity;
     if (add > 0) {
       score += add;
-      reasons.push({ text: 'Compatible sleep rhythm', weight: add });
+      reasons.push({ text: '😴 Compatible sleep rhythm', weight: add });
     }
   } else if (currentLifestyle?.sleep && targetLifestyle?.sleep) {
     if (currentLifestyle.sleep === targetLifestyle.sleep) {
@@ -127,7 +127,7 @@ export function computeCompatibility(input: CompatibilityInput): CompatibilityRe
     const add = WEIGHTS.NOISE * proximity;
     if (add > 0) {
       score += add;
-      reasons.push({ text: 'Similar noise tolerance', weight: add });
+      reasons.push({ text: '🔉 Similar noise tolerance', weight: add });
     }
   } else if (currentLifestyle?.noise && targetLifestyle?.noise) {
     if (currentLifestyle.noise === targetLifestyle.noise) {
@@ -179,7 +179,7 @@ export function computeCompatibility(input: CompatibilityInput): CompatibilityRe
   if (currentLifestyle?.smoker !== undefined && targetLifestyle?.smoker !== undefined) {
     if (currentLifestyle.smoker === targetLifestyle.smoker) {
       score += WEIGHTS.SMOKING;
-      reasons.push({ text: currentLifestyle.smoker ? 'Both smoke' : 'Both non-smokers', weight: WEIGHTS.SMOKING });
+      reasons.push({ text: currentLifestyle.smoker ? '🚬 Both smoke' : '🚭 Both non-smokers', weight: WEIGHTS.SMOKING });
     }
   }
 
@@ -187,7 +187,7 @@ export function computeCompatibility(input: CompatibilityInput): CompatibilityRe
   if (currentLifestyle?.petsOk !== undefined && targetLifestyle?.petsOk !== undefined) {
     if (currentLifestyle.petsOk === targetLifestyle.petsOk) {
       score += WEIGHTS.PETS;
-      reasons.push({ text: currentLifestyle.petsOk ? 'Both pet-friendly' : 'Both prefer no pets', weight: WEIGHTS.PETS });
+      reasons.push({ text: currentLifestyle.petsOk ? '🐾 Both pet-friendly' : '🚫🐾 Both prefer no pets', weight: WEIGHTS.PETS });
     }
   }
 
@@ -201,12 +201,12 @@ export function computeCompatibility(input: CompatibilityInput): CompatibilityRe
     const add = WEIGHTS.GUESTS * proximity;
     if (add > 0) {
       score += add;
-      reasons.push({ text: 'Similar social habits', weight: add });
+      reasons.push({ text: '🎉 Similar social habits', weight: add });
     }
   } else if (currentLifestyle?.guests && targetLifestyle?.guests) {
     if (currentLifestyle.guests === targetLifestyle.guests) {
       score += WEIGHTS.GUESTS;
-      reasons.push({ text: 'Similar social habits', weight: WEIGHTS.GUESTS });
+      reasons.push({ text: '🎉 Similar social habits', weight: WEIGHTS.GUESTS });
     }
   }
 
@@ -214,7 +214,7 @@ export function computeCompatibility(input: CompatibilityInput): CompatibilityRe
   const moveInScore = calculateMoveInAlignment(currentHousing, targetHousing);
   if (moveInScore > 0) {
     score += moveInScore;
-    reasons.push({ text: 'Similar move-in dates', weight: moveInScore });
+    reasons.push({ text: '📅 Similar move-in dates', weight: moveInScore });
   }
 
   // Penalties
@@ -251,7 +251,7 @@ function calculateBudgetFit(currentHousing?: Housing, targetHousing?: Housing): 
       const budgetRange = maxBudget - minBudget;
       const position = (rent - minBudget) / budgetRange;
       const score = WEIGHTS.BUDGET_FIT * (1 - Math.abs(position - 0.5) * 2);
-      return { score, reason: 'Budget matches perfectly' };
+      return { score, reason: '💸 Budget matches perfectly' };
     }
   }
 
@@ -269,7 +269,7 @@ function calculateBudgetFit(currentHousing?: Housing, targetHousing?: Housing): 
       const overlapSize = overlapMax - overlapMin;
       const totalRange = Math.max(currentMax - currentMin, targetMax - targetMin);
       const score = WEIGHTS.BUDGET_FIT * (overlapSize / totalRange);
-      return { score, reason: 'Similar budget range' };
+      return { score, reason: '💸 Similar budget range' };
     }
   }
 
@@ -294,7 +294,7 @@ function calculateLanguageCompatibility(
   const overlap = Array.from(currentLangs).filter(l => targetLangs.has(l));
   if (overlap.length >= 1) {
     const pretty = overlap.slice(0, 2).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' and ');
-    return { score: WEIGHTS.LANGUAGE, reason: `You both speak ${pretty}` };
+    return { score: WEIGHTS.LANGUAGE, reason: `🗣️ You both speak ${pretty}` };
   }
 
   return { score: 0, reason: '' };
@@ -321,10 +321,10 @@ function calculateHobbiesOverlap(
 
   let reason = '';
   if (intersection.size >= 3) {
-    reason = `Share ${intersection.size} hobbies`;
+    reason = `🎯 Share ${intersection.size} hobbies`;
   } else if (intersection.size >= 1) {
     const sharedHobbies = Array.from(intersection).slice(0, 2).join(' & ');
-    reason = `Both enjoy ${sharedHobbies}`;
+    reason = `🎯 Both enjoy ${sharedHobbies}`;
   }
 
   return { score, reason };
@@ -346,7 +346,7 @@ function calculateFoodCompatibility(
                      currentFood === 'vegan' ? 'vegan' :
                      currentFood === 'halal' ? 'halal' :
                      currentFood === 'kosher' ? 'kosher' : 'similar diet';
-    return { score: WEIGHTS.FOOD, reason: `Both ${foodLabel}` };
+    return { score: WEIGHTS.FOOD, reason: `🍽️ Both ${foodLabel}` };
   }
 
   return { score: 0, reason: '' };
@@ -364,7 +364,7 @@ function calculatePoliticsCompatibility(
   const targetPolitics = targetLifestyle.politicalView;
 
   if (currentPolitics && targetPolitics && currentPolitics === targetPolitics) {
-    return { score: WEIGHTS.POLITICS, reason: 'Similar political views' };
+    return { score: WEIGHTS.POLITICS, reason: '🗳️ Similar political views' };
   }
 
   return { score: 0, reason: '' };
@@ -400,7 +400,7 @@ function calculateReligionMatch(
   if (!currentLifestyle.religion || !targetLifestyle.religion) return { score: 0, reason: '' };
 
   if (currentLifestyle.religion === targetLifestyle.religion) {
-    return { score: WEIGHTS.RELIGION, reason: 'Share religious values' };
+    return { score: WEIGHTS.RELIGION, reason: '🙏 Share religious values' };
   }
 
   return { score: 0, reason: '' };
