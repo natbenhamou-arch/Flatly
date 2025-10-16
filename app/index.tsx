@@ -1,20 +1,15 @@
-import React, { useEffect, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, TextInput, KeyboardAvoidingView, ScrollView } from 'react-native';
+import React, { useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { theme, colors } from '@/constants/theme';
 import { useAppStore } from '@/store/app-store';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
-import { signIn, signInWithProvider } from '@/services/auth';
+import { Apple } from 'lucide-react-native';
+import { signInWithProvider } from '@/services/auth';
 
 export default function IndexScreen() {
   const { currentUser, initializeApp, isLoading, hasCompletedOnboarding, setCurrentUser, setOnboardingCompleted } = useAppStore();
   const styles = getStyles();
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     initializeApp();
@@ -39,66 +34,23 @@ export default function IndexScreen() {
 
   const handleProvider = useCallback(async (provider: 'apple' | 'google') => {
     console.log('Provider sign-in pressed', provider);
-    setError('');
     try {
       const result = await signInWithProvider(provider);
       if (result.success && result.user) {
         await setCurrentUser(result.user);
-        const hasOnboarding = hasCompletedOnboarding;
-        if (hasOnboarding) {
-          router.replace('/(tabs)/discover');
-        } else {
-          router.replace('/onboarding');
-        }
+        setOnboardingCompleted(false);
+        router.replace('/onboarding/full-name');
       } else {
-        setError(result.error || 'Sign in failed');
+        console.log('Provider sign-in failed');
       }
     } catch (e) {
       console.log('Provider sign-in error', e);
-      setError('Something went wrong. Please try again.');
     }
-  }, [setCurrentUser, setOnboardingCompleted, hasCompletedOnboarding]);
+  }, [setCurrentUser, setOnboardingCompleted]);
 
-  const handleSignIn = useCallback(async () => {
-    if (!email.trim() || !password.trim()) {
-      setError('Please enter email and password');
-      return;
-    }
-
-    setIsSigningIn(true);
-    setError('');
-    
-    try {
-      const result = await signIn(email.toLowerCase().trim(), password);
-      
-      if (result.success && result.user) {
-        await setCurrentUser(result.user);
-        
-        try {
-          const { getPreferencesByUserId } = await import('@/services/data');
-          const preferences = await getPreferencesByUserId(result.user.id);
-          const hasOnboarding = !!preferences;
-          setOnboardingCompleted(hasOnboarding);
-          
-          if (hasOnboarding) {
-            router.replace('/(tabs)/discover');
-          } else {
-            router.replace('/onboarding');
-          }
-        } catch (error) {
-          console.error('Error checking onboarding:', error);
-          router.replace('/(tabs)/discover');
-        }
-      } else {
-        setError(result.error || 'Invalid email or password');
-      }
-    } catch (error) {
-      console.error('Sign in error:', error);
-      setError('Something went wrong. Please try again.');
-    } finally {
-      setIsSigningIn(false);
-    }
-  }, [email, password, setCurrentUser, setOnboardingCompleted]);
+  const handleSignIn = useCallback(() => {
+    router.push('/signin');
+  }, []);
 
   const handleSignUp = useCallback(() => {
     router.push('/signup');
@@ -128,135 +80,66 @@ export default function IndexScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView
-          style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.content}>
-              <View style={styles.header}>
-                <View style={styles.logoContainer}>
-                  <Image
-                    source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/344pj7718gxg1qvcgbgp1' }}
-                    style={styles.logo}
-                    resizeMode="contain"
-                  />
-                </View>
-                <Text style={styles.title} testID="brand-wordmark">Welcome to Flatly</Text>
-                <Text style={styles.subtitle}>
-                  Sign in to continue
-                </Text>
-              </View>
-
-              <View style={styles.actions}>
-                <TouchableOpacity
-                  style={styles.socialButton}
-                  onPress={() => handleProvider('google')}
-                  testID="google-signin-button"
-                >
-                  <View style={styles.googleIcon}>
-                    <Text style={styles.googleG}>G</Text>
-                  </View>
-                  <Text style={styles.socialButtonText}>Continue with Google</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.socialButton}
-                  onPress={() => handleProvider('apple')}
-                  testID="apple-signin-button"
-                >
-                  <Text style={styles.appleIcon}>🍎</Text>
-                  <Text style={styles.socialButtonText}>Continue with Apple</Text>
-                </TouchableOpacity>
-
-                <View style={styles.divider}>
-                  <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>OR</Text>
-                  <View style={styles.dividerLine} />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <View style={styles.inputContainer}>
-                    <Mail size={20} color={colors.textSecondary} style={styles.inputIcon} />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Email"
-                      placeholderTextColor={colors.textSecondary}
-                      value={email}
-                      onChangeText={(text) => {
-                        setEmail(text);
-                        setError('');
-                      }}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoComplete="email"
-                      testID="email-input"
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <View style={styles.inputContainer}>
-                    <Lock size={20} color={colors.textSecondary} style={styles.inputIcon} />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Password"
-                      placeholderTextColor={colors.textSecondary}
-                      value={password}
-                      onChangeText={(text) => {
-                        setPassword(text);
-                        setError('');
-                      }}
-                      secureTextEntry={!showPassword}
-                      autoCapitalize="none"
-                      autoComplete="password"
-                      testID="password-input"
-                    />
-                    <TouchableOpacity
-                      onPress={() => setShowPassword(!showPassword)}
-                      style={styles.eyeButton}
-                      testID="toggle-password-visibility"
-                    >
-                      {showPassword ? (
-                        <EyeOff size={20} color={colors.textSecondary} />
-                      ) : (
-                        <Eye size={20} color={colors.textSecondary} />
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                {error ? (
-                  <Text style={styles.errorText}>{error}</Text>
-                ) : null}
-
-                <TouchableOpacity
-                  style={styles.signInButtonPrimary}
-                  onPress={handleSignIn}
-                  disabled={isSigningIn}
-                  testID="signin-button"
-                >
-                  <Text style={styles.signInButtonPrimaryText}>
-                    {isSigningIn ? 'Signing in...' : 'Sign in'}
-                  </Text>
-                </TouchableOpacity>
-
-                <View style={styles.bottomLinks}>
-                  <TouchableOpacity onPress={() => console.log('Forgot password')}>
-                    <Text style={styles.linkText}>Forgot password?</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handleSignUp} testID="need-account-button">
-                    <Text style={styles.linkTextRight}>Need an account? Sign up</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <Image
+                source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/344pj7718gxg1qvcgbgp1' }}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+            <Text style={styles.title} testID="brand-wordmark">FLATLY</Text>
+            <Text style={styles.subtitle}>
+              Find your perfect roommate.
+            </Text>
+          </View>
+
+          <View style={styles.actions}>
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => handleProvider('apple')}
+              testID="apple-signup-button"
+            >
+              <Apple size={20} color="#000" />
+              <Text style={styles.socialButtonText}>Sign up with Apple</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => handleProvider('google')}
+              testID="google-signup-button"
+            >
+              <View style={styles.googleIcon}>
+                <Text style={styles.googleG}>G</Text>
+              </View>
+              <Text style={styles.socialButtonText}>Sign up with Google</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={handleSignUp}
+              testID="email-signup-button"
+            >
+              <Image source={{ uri: 'https://cdn.simpleicons.org/maildotru/000000' }} style={styles.mailIcon} />
+              <Text style={styles.socialButtonText}>Sign up with Email</Text>
+            </TouchableOpacity>
+
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <TouchableOpacity
+              style={styles.signInButton}
+              onPress={handleSignIn}
+              testID="signin-button"
+            >
+              <Text style={styles.signInButtonText}>Already have an account? Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -270,12 +153,6 @@ const getStyles = () => StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -288,37 +165,81 @@ const getStyles = () => StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingVertical: 40,
     justifyContent: 'space-between',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginTop: 80,
+    flex: 1,
+    justifyContent: 'center',
   },
   logoContainer: {
-    marginBottom: 24,
+    marginBottom: 40,
   },
   logo: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     tintColor: '#2563EB',
   },
   title: {
-    fontSize: 32,
+    fontSize: 48,
     fontWeight: '700' as const,
-    color: '#111827',
+    color: '#2563EB',
     textAlign: 'center' as const,
-    marginBottom: 8,
-    fontFamily: 'Montserrat-Bold',
+    letterSpacing: 2,
+    marginBottom: 12,
+    fontFamily: 'Montserrat-SemiBold',
   },
   subtitle: {
     fontSize: 17,
-    color: '#6B7280',
+    color: '#4B5563',
     textAlign: 'center' as const,
+    lineHeight: 24,
+    fontWeight: '400' as const,
     fontFamily: 'Montserrat-Regular',
   },
+  featureCard: {
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  feature: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 16,
+  },
+  featureIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  featureIcon: {
+    fontSize: 20,
+  },
+  featureText: {
+    fontSize: 16,
+    color: 'white',
+    flex: 1,
+    fontWeight: '600' as const,
+  },
   actions: {
-    gap: 14,
+    gap: 12,
+    paddingBottom: 32,
+  },
+  actionTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: '#111827',
+    textAlign: 'center' as const,
+    marginBottom: 4,
+    fontFamily: 'Montserrat-SemiBold',
   },
   divider: {
     flexDirection: 'row' as const,
@@ -331,11 +252,24 @@ const getStyles = () => StyleSheet.create({
     backgroundColor: '#E5E7EB',
   },
   dividerText: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    marginHorizontal: 16,
+    fontSize: 14,
+    color: '#6B7280',
+    marginHorizontal: 12,
     fontFamily: 'Montserrat-Regular',
-    fontWeight: '500' as const,
+  },
+  signInButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    backgroundColor: 'transparent',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  signInButtonText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: '#2563EB',
+    fontFamily: 'Montserrat-SemiBold',
   },
   socialButton: {
     flexDirection: 'row' as const,
@@ -361,9 +295,9 @@ const getStyles = () => StyleSheet.create({
     fontFamily: 'Montserrat-SemiBold',
   },
   googleIcon: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: '#4285F4',
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
@@ -373,74 +307,9 @@ const getStyles = () => StyleSheet.create({
     fontWeight: 'bold' as const,
     color: 'white',
   },
-  appleIcon: {
-    fontSize: 20,
-  },
-  inputGroup: {
-    marginBottom: 4,
-  },
-  inputContainer: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    paddingHorizontal: 16,
-    minHeight: 54,
-  },
-  inputIcon: {
-    marginRight: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: '#111827',
-    fontFamily: 'Montserrat-Regular',
-  },
-  eyeButton: {
-    padding: 4,
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#EF4444',
-    textAlign: 'center' as const,
-    marginTop: 4,
-    fontFamily: 'Montserrat-Regular',
-  },
-  signInButtonPrimary: {
-    backgroundColor: '#2563EB',
-    paddingVertical: 16,
-    borderRadius: 25,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    marginTop: 8,
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  signInButtonPrimaryText: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: '#FFFFFF',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-  bottomLinks: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    alignItems: 'center' as const,
-    marginTop: 16,
-  },
-  linkText: {
-    fontSize: 14,
-    color: '#6B7280',
-    fontFamily: 'Montserrat-Regular',
-  },
-  linkTextRight: {
-    fontSize: 14,
-    color: '#2563EB',
-    fontFamily: 'Montserrat-SemiBold',
+  mailIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#000000',
   },
 });
