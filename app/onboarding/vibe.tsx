@@ -129,9 +129,9 @@ export default function VibeScreen() {
             <Text style={styles.sectionTitle}>Politics</Text>
             <View style={styles.sliderContainer}>
               <View style={styles.sliderTrack} onLayout={onTrackLayout} {...panResponder.panHandlers} testID="politics-slider">
-                <View style={[styles.fill, { width: `${politicsPercent}%`, backgroundColor: politicsPercent < 33 ? '#60a5fa' : politicsPercent < 66 ? '#a78bfa' : '#f87171' }]} />
-                <View style={[styles.knob, { left: Math.max(0, trackWidth > 0 ? (trackWidth * (politicsPercent / 100)) - 16 : 0), borderColor: politicsPercent < 33 ? '#60a5fa' : politicsPercent < 66 ? '#a78bfa' : '#f87171' }]}>
-                  <View style={[styles.knobDot, { backgroundColor: politicsPercent < 33 ? '#60a5fa' : politicsPercent < 66 ? '#a78bfa' : '#f87171' }]} />
+                <View style={[styles.fill, { width: `${politicsPercent}%`, backgroundColor: `rgba(37, 99, 235, ${0.2 + 0.6 * (politicsPercent / 100)})` }]} />
+                <View style={[styles.knob, { left: Math.max(0, trackWidth > 0 ? (trackWidth * (politicsPercent / 100)) - 16 : 0), borderColor: '#2563EB' }]}>
+                  <View style={[styles.knobDot, { backgroundColor: '#2563EB' }]} />
                 </View>
               </View>
               <View style={styles.emojiGuideRow}>
