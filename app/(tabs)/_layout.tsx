@@ -3,6 +3,7 @@ import { Heart, User, MessageCircle, Users } from "lucide-react-native";
 import React from "react";
 import { colors } from "@/constants/theme";
 import { BrandHeader } from "@/components/BrandHeader";
+import { TopBar } from "@/components/TopBar";
 
 export default function TabLayout() {
   return (
@@ -50,6 +51,7 @@ export default function TabLayout() {
         options={{
           title: "",
           headerTitle: () => <BrandHeader />,
+headerRight: () => <TopBar />,
           tabBarIcon: ({ color, size, focused }) => (
             <Heart 
               color={focused ? colors.primary : color} 
@@ -70,6 +72,7 @@ export default function TabLayout() {
         options={{
           title: "",
           headerTitle: () => <BrandHeader />,
+headerRight: () => <TopBar />,
           headerShown: true,
           tabBarIcon: ({ color, size }) => <MessageCircle color={color} size={size} />,
           headerStyle: {
@@ -85,6 +88,7 @@ export default function TabLayout() {
         options={{
           title: "",
           headerTitle: () => <BrandHeader />,
+headerRight: () => <TopBar />,
           headerShown: true,
           tabBarIcon: ({ color, size }) => <Users color={color} size={size} />,
           headerStyle: {
@@ -100,6 +104,7 @@ export default function TabLayout() {
         options={{
           title: "",
           headerTitle: () => <BrandHeader />,
+headerRight: () => <TopBar />,
           headerShown: true,
           tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
           headerStyle: {

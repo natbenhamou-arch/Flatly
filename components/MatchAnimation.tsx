@@ -17,7 +17,7 @@ interface MatchAnimationProps {
 
 const { width, height } = Dimensions.get('window');
 
-export function MatchAnimation({ visible, onComplete }: MatchAnimationProps) {
+export function MatchAnimation({ visible, onComplete, matchedUserName }: MatchAnimationProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.3)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
@@ -164,6 +164,16 @@ export function MatchAnimation({ visible, onComplete }: MatchAnimationProps) {
         </Animated.View>
       </View>
 
+      <Animated.View style={[styles.copyContainer, { opacity: fadeAnim }] }>
+        <Animated.Text style={styles.title}>It’s a Match!</Animated.Text>
+        {matchedUserName ? (<Animated.Text style={styles.subtitle}>You and {matchedUserName}</Animated.Text>) : null}
+        <Animated.View style={styles.cta}>
+          <View style={styles.ctaButton}>
+            <Animated.Text onPress={onComplete} style={styles.ctaText}>Send a Message</Animated.Text>
+          </View>
+        </Animated.View>
+      </Animated.View>
+
       {confettiAnims.map((anim, index) => (
         <Animated.View
           key={index}
@@ -241,6 +251,37 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     opacity: 0.4,
     filter: undefined,
+  },
+  copyContainer: {
+    position: 'absolute',
+    bottom: 120,
+    alignItems: 'center',
+    gap: 8,
+  },
+  title: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: '800',
+  },
+  subtitle: {
+    color: '#fff',
+    fontSize: 14,
+    opacity: 0.9,
+  },
+  cta: {
+    marginTop: 12,
+  },
+  ctaButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 22,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  ctaText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 14,
+    textAlign: 'center',
   },
   boltContainer: {
     width: 140,

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -32,6 +32,24 @@ const PLACEHOLDER_IMAGES = [
   'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400'
 ];
+
+function computeProfileStrength(input: { user: any; lifestyle: any; housing: any; preferences: any }): { score: number; actions: { label: string; route: string }[] } {
+  const actions: { label: string; route: string }[] = [];
+  let score = 0;
+  const { user, lifestyle, housing, preferences } = input;
+  const add = (cond: boolean, points: number, action?: { label: string; route: string }) => {
+    if (cond) score += points; else if (action) actions.push(action);
+  };
+  add(!!(user?.photos && user.photos.length >= 3), 20, { label: 'Add 2+ photos', route: '/onboarding/media?edit=1' });
+  add(!!(user?.shortBio && user.shortBio.length >= 60), 15, { label: 'Write a longer bio', route: '/(tabs)/profile' });
+  add(!!user?.university, 10, { label: 'Add your university', route: '/onboarding/school-city?edit=1' });
+  add(!!user?.city, 10, { label: 'Set your city', route: '/onboarding/school-city?edit=1' });
+  add(!!housing, 15, { label: 'Complete housing', route: '/onboarding/housing?edit=1' });
+  add(!!lifestyle, 15, { label: 'Complete lifestyle', route: '/onboarding/lifestyle?edit=1' });
+  add(!!preferences, 15, { label: 'Set matching preferences', route: '/onboarding/preferences?edit=1' });
+  score = Math.min(100, score);
+  return { score, actions };
+}
 
 export default function ProfileScreen() {
   const { currentUser, updateCurrentUser, signOut, refreshFeed } = useAppStore();
@@ -279,9 +297,34 @@ export default function ProfileScreen() {
     }, 5000) as ReturnType<typeof setTimeout>;
   };
 
+  const strength = useMemo(() => computeProfileStrength({ user: currentUser, lifestyle, housing, preferences }), [currentUser, lifestyle, housing, preferences]);
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Profile Strength */}
+        <ClayCard style={[styles.sectionCard, { marginTop: spacing.md }]}> 
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Profile Strength</Text>
+            {strength.actions[0] ? (
+              <ClayButton 
+                title={`Do: ${strength.actions[0].label}`}
+                variant="primary"
+                size="small"
+                onPress={() => router.push(strength.actions[0].route as any)}
+                testID="strength-action"
+              />
+            ) : null}
+          </View>
+          <View style={styles.strengthBarBg}>
+            <View style={[styles.strengthBarFill, { width: `${strength.score}%` }]} />
+            <Text style={styles.strengthLabel}>{strength.score}%</Text>
+          </View>
+          {strength.actions.length > 1 && (
+            <Text style={styles.strengthHint}>Next: {strength.actions.slice(1,3).map(a => a.label).join(' • ')}</Text>
+          )}
+        </ClayCard>
+
         {/* Profile Header */}
         <ClayCard style={styles.headerCard}>
           {isEditingPhotos ? (
@@ -1242,6 +1285,33 @@ const styles = StyleSheet.create({
   },
   sectionCard: {
     marginBottom: spacing.md,
+  },
+  strengthBarBg: {
+    height: 14,
+    borderRadius: 8,
+    backgroundColor: colors.softLilac,
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  strengthBarFill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: colors.lavender,
+    borderRadius: 8,
+  },
+  strengthLabel: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  strengthHint: {
+    marginTop: 8,
+    fontSize: 12,
+    color: colors.textSecondary,
   },
   sectionHeader: {
     flexDirection: 'row',
