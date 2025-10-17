@@ -33,12 +33,16 @@ export function OnboardingProgressBar({ currentStep, totalSteps, stepTitles }: O
     const idx = steps.indexOf(last);
 
     if (idx <= 0) {
-      router.replace('/');
+      router.push('/onboarding/');
       return;
     }
 
-    const prev = steps[idx - 1];
-    router.replace(`/onboarding/${prev}`);
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      const prev = steps[idx - 1];
+      router.push(`/onboarding/${prev}`);
+    }
   };
 
   return (
