@@ -1,24 +1,24 @@
 const colors = {
   // Flatly brand palette (neutral–blue)
-  primary: '#10A3F0',
-  primaryDark: '#146FF5',
+  primary: '#2563EB',
+  primaryDark: '#1D4ED8',
   secondary: '#121829',
   secondaryDark: '#0E1525',
-  accent: '#3BA1FF',
-  accentDark: '#0E7DE7',
+  accent: '#3B82F6',
+  accentDark: '#2563EB',
 
   // Blue gradients
-  gradientBlue: ['#146FF5', '#10A3F0'],
-  gradientLightBlue: ['#3BA1FF', '#10A3F0'],
+  gradientBlue: ['#2563EB', '#3B82F6'],
+  gradientLightBlue: ['#60A5FA', '#3B82F6'],
   gradientNavy: ['#121829', '#0E1525'],
-  gradientSky: ['#7AC3FF', '#3BA1FF'],
+  gradientSky: ['#93C5FD', '#60A5FA'],
   gradientDeep: ['#0E1525', '#121829'],
-  gradientSoft: ['#E9F4FF', '#D6EBFF'],
+  gradientSoft: ['#DBEAFE', '#BFDBFE'],
 
   // Legacy aliases (kept to avoid crashes, mapped to new palette)
-  lavender: '#3BA1FF',
-  mint: '#10A3F0',
-  babyBlue: '#7AC3FF',
+  lavender: '#3B82F6',
+  mint: '#2563EB',
+  babyBlue: '#93C5FD',
   peach: '#121829',
   softLilac: '#F2F6FC',
 
@@ -35,7 +35,7 @@ const colors = {
   success: '#10B981',
   danger: '#EF4444',
   warning: '#F5A524',
-  info: '#10A3F0',
+  info: '#2563EB',
 
   // Borders and dividers
   border: '#E6EAF2',
@@ -52,7 +52,7 @@ const shadows = {
     elevation: 6,
   },
   button: {
-    shadowColor: '#10A3F0',
+    shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 12,
