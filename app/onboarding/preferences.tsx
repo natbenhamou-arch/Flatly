@@ -46,6 +46,8 @@ export default function PreferencesScreen() {
   const [customDealbreaker, setCustomDealbreaker] = useState<string>('');
   const [customMustHave, setCustomMustHave] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [recommendationCode, setRecommendationCode] = useState<string>('');
+  const [useRecommendationCode, setUseRecommendationCode] = useState<boolean>(false);
 
   useEffect(() => {
     const loadExisting = async () => {
@@ -58,6 +60,7 @@ export default function PreferencesScreen() {
             setLookingForGender((existing.lookingFor === 'roommate' || existing.lookingFor === 'room') ? 'both' : 'both');
             setUniversityOnly(existing.universityFilter || false);
             setLanguageMatchOnly(((existing as any)?.languageMatchOnly) ?? false);
+            setUseRecommendationCode(((existing as any)?.useRecommendationCode) ?? false);
             
             const dealbreakers = existing.dealbreakers || [];
             const customDB = dealbreakers.find(db => !DEALBREAKERS.includes(db));
@@ -84,6 +87,16 @@ export default function PreferencesScreen() {
     };
     loadExisting();
   }, [isEditMode, currentUser]);
+
+  useEffect(() => {
+    const loadRecommendationCode = () => {
+      if (!isEditMode) {
+        const code = useAppStore.getState().onboardingUser?.lifestyle?.recommendationCode || '';
+        setRecommendationCode(code);
+      }
+    };
+    loadRecommendationCode();
+  }, [isEditMode]);
 
   const toggleChip = (item: string, isDealbreakerList: boolean) => {
     if (!item?.trim()) return;
@@ -137,8 +150,9 @@ export default function PreferencesScreen() {
           dealbreakers: finalDealbreakers,
           mustHaves: finalMustHaves,
           quizAnswers: {},
-          languageMatchOnly
-        };
+          languageMatchOnly,
+          useRecommendationCode
+        } as any;
         await setPreferences(preferences);
         Alert.alert('Saved', 'Preferences updated');
         router.back();
@@ -154,8 +168,13 @@ export default function PreferencesScreen() {
             dealbreakers: finalDealbreakers,
             mustHaves: finalMustHaves,
             quizAnswers: {},
-            languageMatchOnly
-          }
+            languageMatchOnly,
+            useRecommendationCode
+          },
+          lifestyle: {
+            ...(useAppStore.getState().onboardingUser?.lifestyle || {}),
+            recommendationCode: recommendationCode.trim() || undefined,
+          },
         });
         router.push('./media');
       }
@@ -182,7 +201,8 @@ export default function PreferencesScreen() {
           dealbreakers: [],
           mustHaves: [],
           quizAnswers: {},
-          languageMatchOnly: false
+          languageMatchOnly: false,
+          useRecommendationCode: false
         };
         await setPreferences(defaultPreferences);
         Alert.alert('Saved', 'Reverted to defaults');
@@ -199,7 +219,8 @@ export default function PreferencesScreen() {
             dealbreakers: [],
             mustHaves: [],
             quizAnswers: {},
-            languageMatchOnly: false
+            languageMatchOnly: false,
+            useRecommendationCode: false
           }
         });
         router.push('./media');
@@ -290,6 +311,39 @@ export default function PreferencesScreen() {
               </View>
             </View>
 
+            {/* Recommendation Code */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Recommendation Code (Optional)</Text>
+              <Text style={styles.sectionSubtitle}>
+                If you have a recommendation code, enter it here. You&apos;ll only see people who also have this code.
+              </Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter recommendation code..."
+                  value={recommendationCode}
+                  onChangeText={setRecommendationCode}
+                  placeholderTextColor={theme.colors.text.secondary}
+                  autoCorrect={false}
+                  autoCapitalize="characters"
+                  testID="input-recommendation-code"
+                />
+              </View>
+              {recommendationCode.trim() && (
+                <View style={styles.toggleRow}>
+                  <View style={styles.toggleTextContainer}>
+                    <Text style={styles.toggleText}>Only show people with this code</Text>
+                  </View>
+                  <Switch
+                    value={useRecommendationCode}
+                    onValueChange={setUseRecommendationCode}
+                    trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
+                    thumbColor="white"
+                  />
+                </View>
+              )}
+            </View>
+
             {/* Language overlap filter */}
             <View style={styles.section}>
               <View style={styles.toggleRow}>
@@ -316,6 +370,7 @@ export default function PreferencesScreen() {
                           mustHaves: [],
                           quizAnswers: {},
                           languageMatchOnly: v,
+                          useRecommendationCode: false
                         };
                         await setPreferences(next);
                         await refreshFeed();
@@ -625,6 +680,24 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     fontSize: 16,
+    color: theme.colors.text.primary,
+  },
+  inputContainer: {
+    marginBottom: 12,
+  },
+  input: {
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: theme.colors.text.primary,
+  },
+  toggleText: {
+    fontSize: 16,
+    fontWeight: '600',
     color: theme.colors.text.primary,
   },
 });

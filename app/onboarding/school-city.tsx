@@ -33,8 +33,6 @@ export default function SchoolCityScreen() {
   // removed extra neighborhood selection from this step
   const [top500Only, setTop500Only] = useState<boolean>(false);
   const [job, setJob] = useState<string>(onboardingUser?.job || '');
-  const [recommendationCode, setRecommendationCode] = useState<string>(onboardingUser?.lifestyle?.recommendationCode || '');
-  const [useRecommendationCode, setUseRecommendationCode] = useState<boolean>(false);
 
   const universityResults = useMemo(() => {
     if (!universityQuery || universityQuery.length < 2) return [] as University[];
@@ -114,14 +112,6 @@ export default function SchoolCityScreen() {
       city: finalCity,
       country: finalCountry,
       job: job.trim(),
-      lifestyle: {
-        ...(onboardingUser?.lifestyle || {}),
-        recommendationCode: recommendationCode.trim() || undefined,
-      },
-      preferences: {
-        ...(onboardingUser?.preferences || {}),
-        useRecommendationCode,
-      },
     });
     router.push('./housing');
   };
@@ -264,37 +254,7 @@ export default function SchoolCityScreen() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.label}>Recommendation Code (Optional)</Text>
-          <Text style={styles.helperText}>
-            If you have a recommendation code, enter it here. You&apos;ll only see people who also have this code.
-          </Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter recommendation code..."
-              value={recommendationCode}
-              onChangeText={setRecommendationCode}
-              placeholderTextColor={theme.colors.text.secondary}
-              autoCorrect={false}
-              autoCapitalize="characters"
-              testID="input-recommendation-code"
-            />
-          </View>
-          {recommendationCode.trim() && (
-            <View style={styles.toggleRow}>
-              <TouchableOpacity
-                accessibilityRole="button"
-                testID="toggle-use-recommendation-code"
-                onPress={() => setUseRecommendationCode(v => !v)}
-                style={[styles.toggle, useRecommendationCode && styles.toggleOn]}
-              >
-                <View style={[styles.toggleKnob, useRecommendationCode && styles.toggleKnobOn]} />
-                <Text style={styles.toggleLabel}>Only show people with this code</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+
 
         <LinearGradient
           colors={['#74b9ff', '#0984e3']}
