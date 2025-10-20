@@ -482,6 +482,15 @@ export async function getFeedUsers(currentUserId: string, limit: number = 20): P
     // University filter (optional but recommended)
     if (preferences.universityFilter && user.university !== currentUser.university) return false;
 
+    // Recommendation code filter
+    if (preferences.useRecommendationCode) {
+      const myCode = myLifestyle?.recommendationCode?.trim();
+      const theirCode = lifestyleMap.get(user.id)?.recommendationCode?.trim();
+      if (myCode && theirCode && myCode !== theirCode) return false;
+      if (myCode && !theirCode) return false;
+      if (!myCode && theirCode) return false;
+    }
+
     // Language overlap gating when enabled
     if (preferences.languageMatchOnly === true) {
       const myLangs = myLifestyle?.languages ?? [];
@@ -733,7 +742,8 @@ export async function seedData(): Promise<void> {
         partyTolerance: 'low',
         cleaningFrequency: 'weekly'
       },
-      languageMatchOnly: false
+      languageMatchOnly: false,
+      useRecommendationCode: false
     },
     {
       userId: 'demo_2',
@@ -750,7 +760,26 @@ export async function seedData(): Promise<void> {
         partyTolerance: 'medium',
         cleaningFrequency: 'biweekly'
       },
-      languageMatchOnly: false
+      languageMatchOnly: false,
+      useRecommendationCode: false
+    },
+    {
+      userId: 'demo_3',
+      ageMin: 20,
+      ageMax: 25,
+      cityOnly: true,
+      universityFilter: false,
+      maxDistanceKm: 12,
+      lookingFor: 'room',
+      dealbreakers: ['smoker', 'no pets'],
+      mustHaves: ['creative space', 'good lighting'],
+      quizAnswers: {
+        morningPerson: false,
+        partyTolerance: 'medium',
+        cleaningFrequency: 'weekly'
+      },
+      languageMatchOnly: false,
+      useRecommendationCode: false
     }
   ];
 
@@ -800,7 +829,8 @@ export async function seedData(): Promise<void> {
       partyTolerance: 'medium',
       cleaningFrequency: 'weekly'
     },
-    languageMatchOnly: false
+    languageMatchOnly: false,
+    useRecommendationCode: false
   };
 
   // Create some demo matches
@@ -1040,7 +1070,8 @@ export async function seedDemoUsers({ parisCount = 14, londonCount = 14 }: { par
         partyTolerance: randomFrom(['low', 'medium', 'high']),
         cleaningFrequency: randomFrom(['daily', 'weekly', 'biweekly'])
       },
-      languageMatchOnly: false
+      languageMatchOnly: false,
+      useRecommendationCode: false
     };
   }
 

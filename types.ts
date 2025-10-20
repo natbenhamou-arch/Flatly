@@ -27,6 +27,7 @@ export interface User {
   walkthroughSeen?: boolean;
   autoMatchMessage?: string; // Custom message sent on match
   sendAutoMatchMessage?: boolean; // Whether to send auto message on match (default true)
+  recommendationCode?: string; // Optional code for filtering matches
 }
 
 // Lifestyle & Preferences
@@ -65,6 +66,7 @@ export interface Lifestyle {
   nationalities?: string[];
   // Politics granularity percentage 0-100 (0 progressive, 50 center, 100 conservative)
   politicsPercent?: number;
+  recommendationCode?: string; // Optional code for filtering matches
 }
 
 // Housing & Room Details
@@ -104,6 +106,7 @@ export interface Preferences {
   mustHaves: string[];
   quizAnswers: Record<string, any>;
   languageMatchOnly: boolean;
+  useRecommendationCode: boolean; // Whether to filter by recommendation code
 }
 
 // Swipe & Match System

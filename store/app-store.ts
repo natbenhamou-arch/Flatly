@@ -36,6 +36,8 @@ interface OnboardingPartialUser {
   lifestyle?: Partial<import('@/types').Lifestyle>;
   housing?: Partial<import('@/types').Housing>;
   preferences?: Partial<import('@/types').Preferences>;
+  recommendationCode?: string;
+  useRecommendationCode?: boolean;
 }
 
 interface AppState {
