@@ -477,6 +477,62 @@ export default function ProfileScreen() {
           )}
         </ClayCard>
 
+        {/* Basic Info Section */}
+        <ClayCard style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Basic Info</Text>
+            <ClayButton
+              title="Edit"
+              onPress={() => router.push('/onboarding/school-city?edit=1')}
+              variant="secondary"
+              size="small"
+            />
+          </View>
+          
+          {currentUser.university && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>🎓 University:</Text>
+              <Text style={styles.infoValue}>{currentUser.university}</Text>
+            </View>
+          )}
+          {currentUser.city && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>📍 City:</Text>
+              <Text style={styles.infoValue}>{currentUser.city}{currentUser.country ? `, ${currentUser.country}` : ''}</Text>
+            </View>
+          )}
+          {lifestyle?.jobOrInternship && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>💼 Job:</Text>
+              <Text style={styles.infoValue}>{lifestyle.jobOrInternship}</Text>
+            </View>
+          )}
+          {lifestyle?.nationalities && lifestyle.nationalities.length > 0 && (
+            <View style={styles.subsection}>
+              <Text style={styles.subsectionTitle}>🌍 Nationality</Text>
+              <View style={styles.chipsContainer}>
+                {lifestyle.nationalities.map((nat, index) => (
+                  <View key={`nat-${index}`} style={styles.chip}>
+                    <Text style={styles.chipText}>{nat}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+          {lifestyle?.languages && lifestyle.languages.length > 0 && (
+            <View style={styles.subsection}>
+              <Text style={styles.subsectionTitle}>🗣️ Languages</Text>
+              <View style={styles.chipsContainer}>
+                {lifestyle.languages.map((lang, index) => (
+                  <View key={`lang-${index}`} style={styles.chip}>
+                    <Text style={styles.chipText}>{lang}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+        </ClayCard>
+
         {/* Lifestyle Section */}
         {lifestyle && (
           <ClayCard style={styles.sectionCard}>
@@ -560,10 +616,13 @@ export default function ProfileScreen() {
                     <Text style={styles.prefValue}>{lifestyle.religion}</Text>
                   </View>
                 )}
-                {lifestyle.politicalView && (
+                {lifestyle.politicalView && lifestyle.showPoliticalView && (
                   <View style={styles.prefRow}>
                     <Text style={styles.prefLabel}>🗳 Political:</Text>
-                    <Text style={styles.prefValue}>{lifestyle.politicalView}</Text>
+                    <Text style={styles.prefValue}>
+                      {lifestyle.politicalView}
+                      {typeof lifestyle.politicsPercent === 'number' ? ` (${lifestyle.politicsPercent}%)` : ''}
+                    </Text>
                   </View>
                 )}
                 {lifestyle.religiousChoice && (
@@ -588,6 +647,18 @@ export default function ProfileScreen() {
                   <View style={styles.prefRow}>
                     <Text style={styles.prefLabel}>🎬 Series/Films:</Text>
                     <Text style={styles.prefValue}>{lifestyle.seriesFilms}</Text>
+                  </View>
+                )}
+                {lifestyle.dietary && lifestyle.dietary.length > 0 && (
+                  <View style={styles.prefRow}>
+                    <Text style={styles.prefLabel}>🥗 Dietary:</Text>
+                    <Text style={styles.prefValue}>{lifestyle.dietary.join(', ')}</Text>
+                  </View>
+                )}
+                {lifestyle.studyProgramYear && (
+                  <View style={styles.prefRow}>
+                    <Text style={styles.prefLabel}>📚 Study year:</Text>
+                    <Text style={styles.prefValue}>{lifestyle.studyProgramYear}</Text>
                   </View>
                 )}
               </View>
@@ -753,6 +824,31 @@ export default function ProfileScreen() {
                 </Text>
               </View>
             </View>
+            
+            {/* Filters */}
+            {preferences.cityOnly && (
+              <View style={styles.subsection}>
+                <Text style={styles.subsectionTitle}>🔍 Filters</Text>
+                <View style={styles.additionalPrefs}>
+                  <View style={styles.prefRow}>
+                    <Text style={styles.prefLabel}>📍 City only:</Text>
+                    <Text style={styles.prefValue}>Yes</Text>
+                  </View>
+                  {preferences.universityFilter && (
+                    <View style={styles.prefRow}>
+                      <Text style={styles.prefLabel}>🎓 University only:</Text>
+                      <Text style={styles.prefValue}>Yes</Text>
+                    </View>
+                  )}
+                  {preferences.useRecommendationCode && currentUser.recommendationCode && (
+                    <View style={styles.prefRow}>
+                      <Text style={styles.prefLabel}>🔑 Recommendation code:</Text>
+                      <Text style={styles.prefValue}>{currentUser.recommendationCode}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
             
             {/* Deal-breakers */}
             {preferences.dealbreakers && preferences.dealbreakers.length > 0 && (
@@ -1407,8 +1503,21 @@ const styles = StyleSheet.create({
   },
   infoRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: spacing.sm,
+    gap: spacing.xs,
+  },
+  infoLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    minWidth: 100,
+  },
+  infoValue: {
+    fontSize: 14,
+    color: colors.textPrimary,
+    fontWeight: '500',
+    flex: 1,
   },
   infoText: {
     fontSize: 16,
