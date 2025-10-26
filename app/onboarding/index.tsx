@@ -27,11 +27,11 @@ export default function OnboardingWelcome() {
         style={styles.gradient}
       >
         <View style={styles.content}>
-          {/* Thunder Logo */}
+          {/* Flatly Logo */}
           <View style={styles.logoContainer}>
             <Image
-              source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/344pj7718gxg1qvcgbgp1' }}
-              style={styles.thunderLogo}
+              source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/ax194qfjnn5hgqz1khapo' }}
+              style={styles.flatlyLogo}
               resizeMode="contain"
             />
           </View>
@@ -81,9 +81,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
   },
-  thunderLogo: {
-    width: 80,
-    height: 80,
+  flatlyLogo: {
+    width: 180,
+    height: 180,
   },
   centerContent: {
     flex: 1,

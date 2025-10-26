@@ -1,11 +1,13 @@
 import React, { useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { theme, colors } from '@/constants/theme';
 import { useAppStore } from '@/store/app-store';
 import { Apple } from 'lucide-react-native';
 import { signInWithProvider } from '@/services/auth';
+import { FlatlyLogo } from '@/components/FlatlyLogo';
+import { BrandPattern } from '@/components/BrandPattern';
 
 export default function IndexScreen() {
   const { currentUser, initializeApp, isLoading, hasCompletedOnboarding, setCurrentUser, setOnboardingCompleted } = useAppStore();
@@ -79,17 +81,15 @@ export default function IndexScreen() {
 
   return (
     <View style={styles.container}>
+      <BrandPattern variant="footer" />
+      <BrandPattern variant="header" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Image
-                source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/344pj7718gxg1qvcgbgp1' }}
-                style={styles.logo}
-                resizeMode="contain"
-              />
+              <FlatlyLogo size={120} tintColor={colors.primary} />
             </View>
-            <Text style={styles.title} testID="brand-wordmark">FLATLY</Text>
+            <Text style={styles.title} testID="brand-wordmark">flatly</Text>
             <Text style={styles.subtitle}>
               Find your perfect roommate.
             </Text>
@@ -176,19 +176,15 @@ const getStyles = () => StyleSheet.create({
   logoContainer: {
     marginBottom: 40,
   },
-  logo: {
-    width: 100,
-    height: 100,
-    tintColor: '#2563EB',
-  },
+
   title: {
     fontSize: 48,
     fontWeight: '700' as const,
     color: '#2563EB',
     textAlign: 'center' as const,
-    letterSpacing: 2,
+    letterSpacing: 1,
     marginBottom: 12,
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: 'Montserrat-Bold',
   },
   subtitle: {
     fontSize: 17,

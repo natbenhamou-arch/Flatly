@@ -42,6 +42,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderRadius: radius.xl,
     padding: 20,
+    borderTopWidth: 2,
+    borderTopColor: colors.primary + '20',
     ...shadows.card,
   },
   softCard: {

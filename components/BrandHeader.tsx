@@ -1,16 +1,13 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '@/constants/theme';
+import { FlatlyLogo } from './FlatlyLogo';
 
 export function BrandHeader() {
   return (
     <View style={styles.container} testID="brand-header">
-      <Image 
-        source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/344pj7718gxg1qvcgbgp1' }} 
-        style={styles.logo} 
-        resizeMode="contain" 
-      />
-      <Text style={styles.brandText}>FLATLY</Text>
+      <FlatlyLogo size={32} tintColor={colors.primary} />
+      <Text style={styles.brandText}>flatly</Text>
     </View>
   );
 }
@@ -20,16 +17,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  logo: {
-    width: 28,
-    height: 32,
-    marginRight: 8,
-  },
+
   brandText: {
     fontFamily: 'Montserrat-Bold',
     fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: 2,
-    color: colors.secondary,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: colors.primary,
+    marginLeft: 8,
   },
 });

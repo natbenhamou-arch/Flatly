@@ -18,6 +18,7 @@ import { ClayButton } from '@/components/ClayButton';
 import { ProfileDetailModal } from '@/components/ProfileDetailModal';
 import { CompatibilityModal } from '@/components/CompatibilityModal';
 import { MatchAnimation } from '@/components/MatchAnimation';
+import { BrandPattern } from '@/components/BrandPattern';
 import { colors, spacing, radius } from '@/constants/theme';
 import { FeedUser, User as UserType } from '@/types';
 
@@ -342,6 +343,7 @@ export default function DiscoverScreen() {
 
   return (
     <View style={styles.container}>
+      <BrandPattern variant="subtle" />
       {currentUser?.paused ? (
         <View style={styles.pausedBanner} testID="paused-banner">
           <LinearGradient

@@ -16,6 +16,7 @@ import { searchUniversities, findUniversityByName } from '@/mocks/universities';
 import { University } from '@/types';
 import { useAppStore } from '@/store/app-store';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BrandPattern } from '@/components/BrandPattern';
 
 
 export default function SchoolCityScreen() {
@@ -118,6 +119,7 @@ export default function SchoolCityScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <BrandPattern variant="header" />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>School & City</Text>
         <Text style={styles.subtitle}>
