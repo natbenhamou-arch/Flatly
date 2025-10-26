@@ -24,7 +24,7 @@ export default function IndexScreen() {
         if (hasCompletedOnboarding) {
           router.replace('/(tabs)/discover');
         } else {
-          router.replace('/onboarding/full-name');
+          router.replace('/signup');
         }
       }, 0);
       
@@ -39,7 +39,7 @@ export default function IndexScreen() {
       if (result.success && result.user) {
         await setCurrentUser(result.user);
         setOnboardingCompleted(false);
-        router.replace('/onboarding/full-name');
+        router.replace('/signup');
       } else {
         console.log('Provider sign-in failed');
       }
