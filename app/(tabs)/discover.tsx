@@ -282,7 +282,9 @@ export default function DiscoverScreen() {
     <Modal visible={showWalkthrough} animationType="fade" transparent>
       <View style={themedStyles.walkOverlay}>
         <View style={themedStyles.walkCard}>
-          <View style={themedStyles.walkIcon}>{walkthroughSlides[walkIndex]?.icon}</View>
+          {walkthroughSlides[walkIndex]?.icon && (
+            <View style={themedStyles.walkIcon}>{walkthroughSlides[walkIndex].icon}</View>
+          )}
           <Text style={themedStyles.walkTitle}>{walkthroughSlides[walkIndex]?.title}</Text>
           <Text style={themedStyles.walkBody}>{walkthroughSlides[walkIndex]?.body}</Text>
           <View style={themedStyles.walkControls}>
