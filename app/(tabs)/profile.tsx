@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { 
   View, 
   Text, 
@@ -16,7 +16,8 @@ import { router } from 'expo-router';
 import { useAppStore } from '@/store/app-store';
 import { ClayCard } from '@/components/ClayCard';
 import { ClayButton } from '@/components/ClayButton';
-import { colors, spacing, radius } from '@/constants/theme';
+import { getThemedColors, spacing, radius } from '@/constants/theme';
+import { useTheme } from '@/store/theme-store';
 import { generateBio } from '@/services/ai';
 import { updateUser, getLifestyleByUserId, getHousingByUserId, getPreferencesByUserId } from '@/services/data';
 import { displayName } from '@/utils/format';
@@ -52,6 +53,8 @@ function computeProfileStrength(input: { user: any; lifestyle: any; housing: any
 }
 
 export default function ProfileScreen() {
+  const { isDark } = useTheme();
+  const colors = getThemedColors(isDark);
   const { currentUser, updateCurrentUser, signOut, refreshFeed } = useAppStore();
   const [isEditingBio, setIsEditingBio] = useState<boolean>(false);
   const [isEditingPhotos, setIsEditingPhotos] = useState<boolean>(false);
@@ -69,18 +72,18 @@ export default function ProfileScreen() {
   const [lifestyle, setLifestyle] = useState<Lifestyle | null>(null);
   const [housing, setHousing] = useState<Housing | null>(null);
   const [preferences, setPreferences] = useState<Preferences | null>(null);
-  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
   
   // Secret gesture state
   const tapCount = useRef<number>(0);
   const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
 
   // Load onboarding data
   useEffect(() => {
     const loadOnboardingData = async () => {
       if (!currentUser) return;
       
-      setIsLoadingData(true);
       try {
         const [lifestyleData, housingData, preferencesData] = await Promise.all([
           getLifestyleByUserId(currentUser.id),
@@ -94,7 +97,7 @@ export default function ProfileScreen() {
       } catch (error) {
         console.error('Failed to load onboarding data:', error);
       } finally {
-        setIsLoadingData(false);
+        // Loading complete
       }
     };
     
@@ -1216,7 +1219,7 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof getThemedColors>) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
