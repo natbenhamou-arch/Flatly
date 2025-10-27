@@ -370,6 +370,22 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setOnboardingCompleted: (completed: boolean) => {
     set({ hasCompletedOnboarding: completed });
+    if (completed) {
+      const { currentUser, refreshFeed, loadMatches } = get();
+      if (currentUser) {
+        (async () => {
+          try {
+            await setupDemoWorld(currentUser.id);
+          } catch (e) {
+            console.log('Demo setup error after onboarding', e);
+          }
+          await Promise.all([
+            refreshFeed(),
+            loadMatches()
+          ]);
+        })();
+      }
+    }
   },
 
   signOut: async () => {

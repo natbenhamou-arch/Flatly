@@ -4,12 +4,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-
+import { FlatlyLogo } from '@/components/FlatlyLogo';
 
 export default function OnboardingWelcome() {
   const insets = useSafeAreaInsets();
@@ -19,40 +18,31 @@ export default function OnboardingWelcome() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]} testID="onboarding-welcome">
       <LinearGradient
-        colors={['#2563EB', '#1E40AF', '#1E3A8A']}
+        colors={['#0B1220', '#0E1B3A', '#0B1220']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
         <View style={styles.content}>
-          {/* Flatly Logo */}
           <View style={styles.logoContainer}>
-            <Image
-              source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/zdt6a3b5ypmu899lecir2' }}
-              style={styles.flatlyLogo}
-              resizeMode="contain"
-            />
+            <FlatlyLogo size={180} seamless testID="welcome-logo" />
           </View>
 
-          {/* Minimalistic Center Content */}
           <View style={styles.centerContent}>
-            {/* App Name */}
             <Text style={styles.appName}>flatly</Text>
-            
-            {/* Simple Tagline */}
             <Text style={styles.tagline}>
               Find your perfect roommate
             </Text>
           </View>
 
-          {/* Simple CTA */}
           <View style={styles.ctaSection}>
             <TouchableOpacity
               style={styles.startButton}
               onPress={handleStartJourney}
               activeOpacity={0.8}
+              testID="get-started-button"
             >
               <Text style={styles.startButtonText}>Get Started</Text>
             </TouchableOpacity>
@@ -81,10 +71,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
   },
-  flatlyLogo: {
-    width: 180,
-    height: 180,
-  },
   centerContent: {
     flex: 1,
     justifyContent: 'center',
@@ -108,16 +94,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   startButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     paddingVertical: 16,
     paddingHorizontal: 40,
   },
   startButtonText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: 'white',
     textAlign: 'center',
   },
