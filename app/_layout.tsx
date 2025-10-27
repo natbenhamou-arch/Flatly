@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ToastProvider, ToastHost } from "@/components/Toast";
 import { trpc, trpcClient } from "@/lib/trpc";
 import { useFonts, Montserrat_400Regular, Montserrat_600SemiBold, Montserrat_700Bold } from "@expo-google-fonts/montserrat";
+import { ThemeProvider } from "@/store/theme-store";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -74,12 +75,14 @@ export default function RootLayout() {
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={styles.container}>
-          <ToastProvider>
-            <View style={styles.navContainer}>
-              <RootLayoutNav />
-              <ToastHost />
-            </View>
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <View style={styles.navContainer}>
+                <RootLayoutNav />
+                <ToastHost />
+              </View>
+            </ToastProvider>
+          </ThemeProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>
     </trpc.Provider>

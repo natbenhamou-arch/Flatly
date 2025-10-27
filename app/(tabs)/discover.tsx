@@ -12,6 +12,7 @@ import {
 import { Heart, X, Sparkles, Zap as Lightning, Users, User } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppStore } from '@/store/app-store';
+import { useTheme } from '@/store/theme-store';
 
 import { UserCard } from '@/components/UserCard';
 import { ClayButton } from '@/components/ClayButton';
@@ -19,7 +20,7 @@ import { ProfileDetailModal } from '@/components/ProfileDetailModal';
 import { CompatibilityModal } from '@/components/CompatibilityModal';
 import { MatchAnimation } from '@/components/MatchAnimation';
 import { BrandPattern } from '@/components/BrandPattern';
-import { colors, spacing, radius } from '@/constants/theme';
+import { getThemedColors, spacing, radius } from '@/constants/theme';
 import { FeedUser, User as UserType } from '@/types';
 
 import { displayName } from '@/utils/format';
@@ -31,6 +32,8 @@ import { useToast } from '@/components/Toast';
 
 export default function DiscoverScreen() {
   // Note: This screen uses tabs layout which handles safe area automatically
+  const { isDark } = useTheme();
+  const colors = getThemedColors(isDark);
   const { 
     feedUsers, 
     swipeUser, 
@@ -41,6 +44,7 @@ export default function DiscoverScreen() {
     hasCompletedOnboarding,
     currentUser
   } = useAppStore();
+  const themedStyles = React.useMemo(() => createStyles(colors), [colors]);
   const { width: screenWidth } = useWindowDimensions();
   const pan = useRef(new Animated.ValueXY()).current;
   const opacity = useRef(new Animated.Value(1)).current;
@@ -257,7 +261,7 @@ export default function DiscoverScreen() {
       body: 'In Profile, edit info anytime or Pause your profile to hide from Discover.',
       icon: <Sparkles color={colors.lavender} size={32} />,
     },
-  ]), []);
+  ]), [colors.lavender]);
 
   const finishWalkthrough = useCallback(async () => {
     try {
@@ -276,15 +280,15 @@ export default function DiscoverScreen() {
 
   const renderWalkthrough = () => (
     <Modal visible={showWalkthrough} animationType="fade" transparent>
-      <View style={styles.walkOverlay}>
-        <View style={styles.walkCard}>
-          <View style={styles.walkIcon}>{walkthroughSlides[walkIndex]?.icon}</View>
-          <Text style={styles.walkTitle}>{walkthroughSlides[walkIndex]?.title}</Text>
-          <Text style={styles.walkBody}>{walkthroughSlides[walkIndex]?.body}</Text>
-          <View style={styles.walkControls}>
-            <View style={styles.walkDotsContainer}>
+      <View style={themedStyles.walkOverlay}>
+        <View style={themedStyles.walkCard}>
+          <View style={themedStyles.walkIcon}>{walkthroughSlides[walkIndex]?.icon}</View>
+          <Text style={themedStyles.walkTitle}>{walkthroughSlides[walkIndex]?.title}</Text>
+          <Text style={themedStyles.walkBody}>{walkthroughSlides[walkIndex]?.body}</Text>
+          <View style={themedStyles.walkControls}>
+            <View style={themedStyles.walkDotsContainer}>
               {walkthroughSlides.map((slide, i) => (
-                <Text key={`dot-${slide.title}-${i}`} style={styles.walkDot}>
+                <Text key={`dot-${slide.title}-${i}`} style={themedStyles.walkDot}>
                   {i === walkIndex ? '●' : '○'}
                 </Text>
               ))}
@@ -312,28 +316,28 @@ export default function DiscoverScreen() {
 
   if (feedUsers.length === 0) {
     return (
-      <View style={styles.container}>
+      <View style={themedStyles.container}>
         {currentUser?.paused ? (
-          <View style={styles.pausedBanner} testID="paused-banner">
+          <View style={themedStyles.pausedBanner} testID="paused-banner">
             <LinearGradient
               colors={['#EF4444', '#DC2626']}
-              style={styles.pausedGradient}
+              style={themedStyles.pausedGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              <Text style={styles.pausedText}>⏸️ Profile paused — You are hidden from Discover</Text>
+              <Text style={themedStyles.pausedText}>⏸️ Profile paused — You are hidden from Discover</Text>
             </LinearGradient>
           </View>
         ) : null}
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyTitle}>No new roommates nearby</Text>
-          <Text style={styles.emptySubtitle}>
+        <View style={themedStyles.emptyState}>
+          <Text style={themedStyles.emptyTitle}>No new roommates nearby</Text>
+          <Text style={themedStyles.emptySubtitle}>
             Expand your city or preferences to find more.
           </Text>
           <ClayButton
             title="Refresh"
             onPress={refreshFeed}
-            style={styles.refreshButton}
+            style={themedStyles.refreshButton}
           />
         </View>
         {renderWalkthrough()}
@@ -342,24 +346,24 @@ export default function DiscoverScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={themedStyles.container}>
       <BrandPattern variant="subtle" />
       {currentUser?.paused ? (
-        <View style={styles.pausedBanner} testID="paused-banner">
+        <View style={themedStyles.pausedBanner} testID="paused-banner">
           <LinearGradient
             colors={['#EF4444', '#DC2626']}
-            style={styles.pausedGradient}
+            style={themedStyles.pausedGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <Text style={styles.pausedText}>⏸️ Profile paused — You are hidden from Discover</Text>
+            <Text style={themedStyles.pausedText}>⏸️ Profile paused — You are hidden from Discover</Text>
           </LinearGradient>
         </View>
       ) : null}
-      <View style={styles.cardContainer}>
+      <View style={themedStyles.cardContainer}>
         {/* Next card (background) */}
         {feedUsers[1] && (
-          <View style={[styles.card, styles.nextCard]}>
+          <View style={[themedStyles.card, themedStyles.nextCard]}>
             <UserCard 
               user={feedUsers[1]} 
               showCompatibilityScore
@@ -372,7 +376,7 @@ export default function DiscoverScreen() {
         {/* Current card */}
         {currentCard && (
           <Animated.View
-            style={[styles.card, cardTransform]}
+            style={[themedStyles.card, cardTransform]}
             {...panResponder.panHandlers}
           >
             <UserCard 
@@ -385,19 +389,19 @@ export default function DiscoverScreen() {
         )}
       </View>
 
-      <View style={styles.actionButtons} testID="action-bar">
+      <View style={themedStyles.actionButtons} testID="action-bar">
         <Pressable
           onPress={handlePass}
           testID="btn-pass"
           style={({ pressed }) => [
-            styles.pillButton,
-            styles.passPill,
-            pressed ? styles.pillPressed : null,
+            themedStyles.pillButton,
+            themedStyles.passPill,
+            pressed ? themedStyles.pillPressed : null,
           ]}
         >
           <LinearGradient
             colors={["#1B2432", "#121829"]}
-            style={styles.pillGradient}
+            style={themedStyles.pillGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
@@ -410,15 +414,15 @@ export default function DiscoverScreen() {
           testID="btn-like"
           disabled={!!currentUser?.paused}
           style={({ pressed }) => [
-            styles.pillButton,
-            styles.likePill,
+            themedStyles.pillButton,
+            themedStyles.likePill,
             currentUser?.paused ? { opacity: 0.6 } : null,
-            pressed ? styles.pillPressed : null,
+            pressed ? themedStyles.pillPressed : null,
           ]}
         >
           <LinearGradient
             colors={["#0F6BFF", "#0A3FF0"]}
-            style={styles.pillGradient}
+            style={themedStyles.pillGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
@@ -467,10 +471,10 @@ export default function DiscoverScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (themedColors: ReturnType<typeof getThemedColors>) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: themedColors.background,
   },
   cardContainer: {
     flex: 1,
@@ -488,7 +492,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   pausedText: {
-    color: colors.white,
+    color: themedColors.white,
     textAlign: 'center',
     fontWeight: '700',
   },
@@ -501,7 +505,7 @@ const styles = StyleSheet.create({
   },
   walkCard: {
     width: '100%',
-    backgroundColor: colors.background,
+    backgroundColor: themedColors.background,
     borderRadius: 16,
     padding: spacing.lg,
     alignItems: 'center',
@@ -513,12 +517,12 @@ const styles = StyleSheet.create({
   walkTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: themedColors.textPrimary,
     textAlign: 'center',
   },
   walkBody: {
     fontSize: 16,
-    color: colors.textSecondary,
+    color: themedColors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: spacing.md,
@@ -533,7 +537,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   walkDot: {
-    color: colors.textSecondary,
+    color: themedColors.textSecondary,
     fontSize: 16,
   },
   card: {
@@ -587,13 +591,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: themedColors.textPrimary,
     marginBottom: spacing.sm,
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 16,
-    color: colors.textSecondary,
+    color: themedColors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: spacing.xl,

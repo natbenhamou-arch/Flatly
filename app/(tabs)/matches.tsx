@@ -12,10 +12,11 @@ import { router } from 'expo-router';
 import { useAppStore } from '@/store/app-store';
 import { ClayCard } from '@/components/ClayCard';
 import { MatchAnimation } from '@/components/MatchAnimation';
-import { colors, spacing } from '@/constants/theme';
+import { getThemedColors, spacing } from '@/constants/theme';
 import { getUserById, getMessagesByMatch } from '@/services/data';
 import { User, Message } from '@/types';
 import { displayName } from '@/utils/format';
+import { useTheme } from '@/store/theme-store';
 
 interface MatchWithDetails {
   id: string;
@@ -27,6 +28,8 @@ interface MatchWithDetails {
 }
 
 export default function MatchesScreen() {
+  const { isDark } = useTheme();
+  const colors = getThemedColors(isDark);
   const { matches: rawMatches, currentUser } = useAppStore();
   const [matchesWithDetails, setMatchesWithDetails] = useState<MatchWithDetails[]>([]);
   const [showMatchAnimation, setShowMatchAnimation] = useState<boolean>(false);
@@ -170,6 +173,8 @@ export default function MatchesScreen() {
     );
   };
 
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -229,7 +234,7 @@ export default function MatchesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof getThemedColors>) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

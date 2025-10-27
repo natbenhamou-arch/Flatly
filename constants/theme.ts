@@ -1,4 +1,4 @@
-const colors = {
+const lightColors = {
   // Flatly brand palette (neutral–blue)
   primary: '#2563EB',
   primaryDark: '#1D4ED8',
@@ -41,6 +41,52 @@ const colors = {
   border: '#E6EAF2',
   borderLight: '#EEF2F8',
 } as const;
+
+const darkColors = {
+  // Flatly brand palette (neutral–blue)
+  primary: '#3B82F6',
+  primaryDark: '#60A5FA',
+  secondary: '#E6EAF2',
+  secondaryDark: '#F5F7FB',
+  accent: '#60A5FA',
+  accentDark: '#93C5FD',
+
+  // Blue gradients
+  gradientBlue: ['#3B82F6', '#2563EB'],
+  gradientLightBlue: ['#60A5FA', '#3B82F6'],
+  gradientNavy: ['#0E1525', '#121829'],
+  gradientSky: ['#60A5FA', '#93C5FD'],
+  gradientDeep: ['#121829', '#0E1525'],
+  gradientSoft: ['#1E293B', '#334155'],
+
+  // Legacy aliases (kept to avoid crashes, mapped to new palette)
+  lavender: '#60A5FA',
+  mint: '#3B82F6',
+  babyBlue: '#93C5FD',
+  peach: '#E6EAF2',
+  softLilac: '#1E293B',
+
+  // Text and surfaces
+  textPrimary: '#F5F7FB',
+  textSecondary: '#98A2B3',
+  textLight: '#667085',
+  white: '#FFFFFF',
+  background: '#0F1419',
+  surface: '#1A1F26',
+  surfaceElevated: '#252B35',
+
+  // Status colors
+  success: '#10B981',
+  danger: '#EF4444',
+  warning: '#F5A524',
+  info: '#3B82F6',
+
+  // Borders and dividers
+  border: '#2D3748',
+  borderLight: '#252B35',
+} as const;
+
+const colors = lightColors;
 
 const shadows = {
   // Modern elevated shadows tuned for light surfaces
@@ -173,4 +219,8 @@ export const theme = {
 } as const;
 
 // Export individual parts for flexibility
-export { colors, shadows, radius, spacing, gradients };
+export { colors, lightColors, darkColors, shadows, radius, spacing, gradients };
+
+export function getThemedColors(isDark: boolean) {
+  return isDark ? darkColors : lightColors;
+}

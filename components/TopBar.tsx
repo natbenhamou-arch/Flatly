@@ -1,19 +1,18 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { Bell, Moon, SunMedium, Shield, Crown, Settings } from 'lucide-react-native';
-import { useColorScheme } from 'react-native';
-import { colors, spacing, radius } from '@/constants/theme';
-import { router, usePathname } from 'expo-router';
+import { getThemedColors, spacing, radius } from '@/constants/theme';
+import { router } from 'expo-router';
 import { useAppStore } from '@/store/app-store';
+import { useTheme } from '@/store/theme-store';
 
 interface TopBarProps {
   testID?: string;
 }
 
 export function TopBar({ testID }: TopBarProps) {
-  const systemScheme = useColorScheme();
-  const { featureFlags } = useAppStore();
-  const [isDark, setIsDark] = React.useState<boolean>(systemScheme === 'dark');
+  const { isDark, toggleTheme } = useTheme();
+  const colors = getThemedColors(isDark);
   const [notifCount, setNotifCount] = React.useState<number>(0);
 
   React.useEffect(() => {
@@ -31,7 +30,7 @@ export function TopBar({ testID }: TopBarProps) {
     <View style={styles.container} testID={testID ?? 'top-bar'}>
       <TouchableOpacity
         accessibilityRole="button"
-        onPress={() => setIsDark((v) => !v)}
+        onPress={toggleTheme}
         style={styles.iconBtn}
         testID="toggle-dark"
       >

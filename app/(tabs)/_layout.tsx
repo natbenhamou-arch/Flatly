@@ -1,11 +1,15 @@
 import { Tabs } from "expo-router";
 import { Heart, User, MessageCircle, Users } from "lucide-react-native";
 import React from "react";
-import { colors } from "@/constants/theme";
+import { getThemedColors } from "@/constants/theme";
 import { BrandHeader } from "@/components/BrandHeader";
 import { TopBar } from "@/components/TopBar";
+import { useTheme } from "@/store/theme-store";
 
 export default function TabLayout() {
+  const { isDark } = useTheme();
+  const colors = getThemedColors(isDark);
+  
   return (
     <Tabs
       screenOptions={{
