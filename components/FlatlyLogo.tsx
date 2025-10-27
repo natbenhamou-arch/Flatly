@@ -11,11 +11,11 @@ export function FlatlyLogo({ size = 32, tintColor, testID }: FlatlyLogoProps) {
   return (
     <View style={[styles.container, { width: size, height: size }]} testID={testID}>
       <Image
-        source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/ax194qfjnn5hgqz1khapo' }}
+        source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/zdt6a3b5ypmu899lecir2' }}
         style={[
           styles.logo,
           { width: size, height: size },
-          tintColor && { tintColor }
+          tintColor ? { tintColor } : undefined
         ]}
         resizeMode="contain"
       />

@@ -30,7 +30,7 @@ export default function OnboardingWelcome() {
           {/* Flatly Logo */}
           <View style={styles.logoContainer}>
             <Image
-              source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/ax194qfjnn5hgqz1khapo' }}
+              source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/zdt6a3b5ypmu899lecir2' }}
               style={styles.flatlyLogo}
               resizeMode="contain"
             />

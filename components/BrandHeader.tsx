@@ -6,7 +6,7 @@ import { FlatlyLogo } from './FlatlyLogo';
 export function BrandHeader() {
   return (
     <View style={styles.container} testID="brand-header">
-      <FlatlyLogo size={32} tintColor={colors.primary} />
+      <FlatlyLogo size={32} />
       <Text style={styles.brandText}>flatly</Text>
     </View>
   );
