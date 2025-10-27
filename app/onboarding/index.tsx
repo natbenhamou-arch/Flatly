@@ -27,11 +27,10 @@ export default function OnboardingWelcome() {
       >
         <View style={styles.content}>
           <View style={styles.logoContainer}>
-            <FlatlyLogo size={180} seamless testID="welcome-logo" />
+            <FlatlyLogo size={120} withText={true} testID="welcome-logo" />
           </View>
 
           <View style={styles.centerContent}>
-            <Text style={styles.appName}>flatly</Text>
             <Text style={styles.tagline}>
               Find your perfect roommate
             </Text>
@@ -69,26 +68,19 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 60,
   },
   centerContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  appName: {
-    fontSize: 42,
-    fontWeight: '300',
-    color: 'white',
-    textAlign: 'center',
-    letterSpacing: 2,
-  },
   tagline: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 18,
+    color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
-    marginTop: 12,
     fontWeight: '300',
+    letterSpacing: 0.5,
   },
   ctaSection: {
     alignItems: 'center',

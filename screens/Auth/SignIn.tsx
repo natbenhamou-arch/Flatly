@@ -18,6 +18,7 @@ import { ClayCard } from '@/components/ClayCard';
 import { colors, spacing, radius } from '@/constants/theme';
 import { signIn, validateEmail } from '@/services/auth';
 import { useAppStore } from '@/store/app-store';
+import { FlatlyLogo } from '@/components/FlatlyLogo';
 
 export default function SignInScreen() {
   const { setCurrentUser, setOnboardingCompleted } = useAppStore();
@@ -109,7 +110,9 @@ export default function SignInScreen() {
         >
           <ClayCard style={styles.formCard}>
             <View style={styles.header}>
-              <Text style={styles.logo}>🏠</Text>
+              <View style={styles.logoContainer}>
+                <FlatlyLogo size={80} withText={true} testID="signin-logo" />
+              </View>
               <Text style={styles.title}>Welcome Back</Text>
               <Text style={styles.subtitle}>
                 Sign in to continue finding your perfect roommate
@@ -181,7 +184,7 @@ export default function SignInScreen() {
               />
 
               <View style={styles.signUpContainer}>
-                <Text style={styles.signUpText}>Don't have an account? </Text>
+                <Text style={styles.signUpText}>Don&apos;t have an account? </Text>
                 <TouchableOpacity onPress={() => router.replace('/signup')}>
                   <Text style={styles.signUpLink}>Sign Up</Text>
                 </TouchableOpacity>
@@ -219,9 +222,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.xl,
   },
-  logo: {
-    fontSize: 48,
-    marginBottom: spacing.sm,
+  logoContainer: {
+    marginBottom: spacing.md,
   },
   title: {
     fontSize: 28,

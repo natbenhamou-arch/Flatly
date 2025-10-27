@@ -18,6 +18,7 @@ import { ClayCard } from '@/components/ClayCard';
 import { OnboardingProgressBar } from '@/components/OnboardingProgressBar';
 import { colors, spacing, radius } from '@/constants/theme';
 import { useAppStore } from '@/store/app-store';
+import { FlatlyLogo } from '@/components/FlatlyLogo';
 
 export default function SignUpScreen() {
   const { setUserOnboardingPartial } = useAppStore();
@@ -145,7 +146,9 @@ export default function SignUpScreen() {
         >
           <ClayCard style={styles.formCard}>
             <View style={styles.header}>
-              <Text style={styles.logo}>🏠</Text>
+              <View style={styles.logoContainer}>
+                <FlatlyLogo size={80} withText={true} testID="signup-logo" />
+              </View>
               <Text style={styles.title}>Get Started</Text>
               <Text style={styles.subtitle}>
                 Let&apos;s start with the basics
@@ -289,9 +292,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.xl,
   },
-  logo: {
-    fontSize: 48,
-    marginBottom: spacing.sm,
+  logoContainer: {
+    marginBottom: spacing.md,
   },
   title: {
     fontSize: 28,
