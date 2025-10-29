@@ -85,7 +85,9 @@ export async function signUp(
 
     if (profileError) {
       console.error('Profile creation error:', profileError);
-      return { success: false, error: 'Failed to create profile' };
+      console.error('Profile error details:', JSON.stringify(profileError, null, 2));
+      const errorMessage = profileError.message || profileError.hint || 'Failed to create profile';
+      return { success: false, error: `Profile creation failed: ${errorMessage}` };
     }
 
     console.log('Profile created successfully:', profileData.id);
@@ -133,7 +135,9 @@ export async function signIn(email: string, password: string): Promise<{ success
 
     if (profileError || !profileData) {
       console.error('Profile fetch error:', profileError);
-      return { success: false, error: 'Failed to fetch profile' };
+      console.error('Profile fetch error details:', JSON.stringify(profileError, null, 2));
+      const errorMessage = profileError?.message || profileError?.hint || 'Failed to fetch profile';
+      return { success: false, error: `Failed to fetch profile: ${errorMessage}` };
     }
 
     console.log('User signed in successfully:', profileData.id);
@@ -201,6 +205,7 @@ export async function restoreSession(): Promise<{ success: boolean; user?: any }
 
     if (profileError) {
       console.error('Profile fetch error:', profileError);
+      console.error('Profile fetch error details:', JSON.stringify(profileError, null, 2));
       return { success: false };
     }
 
