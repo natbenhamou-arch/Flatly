@@ -1,19 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
 
-const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
+const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://skehagxiszijvfndzjtq.supabase.co';
+const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNrZWhhZ3hpc3ppanZmbmR6anRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2OTI1ODUsImV4cCI6MjA3NzI2ODU4NX0.2SjCDuuaNIGxAGkedPNpLcI79q4b8VSRZT5WjgcKj1w';
 
-if (supabaseUrl === 'https://placeholder.supabase.co' || supabaseAnonKey === 'placeholder-key') {
-  console.warn('⚠️ Supabase is not configured. Using placeholder values.');
-  console.warn('To configure Supabase:');
-  console.warn('1. Create a project at https://supabase.com');
-  console.warn('2. Add your credentials to app.json in the "extra" section:');
-  console.warn('   "extra": {');
-  console.warn('     "supabaseUrl": "YOUR_SUPABASE_URL",');
-  console.warn('     "supabaseAnonKey": "YOUR_SUPABASE_ANON_KEY"');
-  console.warn('   }');
-}
+console.log('✅ Supabase configured:', supabaseUrl);
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
