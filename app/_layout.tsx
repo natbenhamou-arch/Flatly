@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ToastProvider, ToastHost } from "@/components/Toast";
 import { trpc, trpcClient } from "@/lib/trpc";
@@ -16,7 +16,10 @@ const queryClient = new QueryClient();
 function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerBackTitle: "Back", headerTitleStyle: { fontFamily: 'Montserrat-SemiBold' } }}>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="create-account" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="signin" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen 
         name="onboarding" 
         options={{ 
@@ -25,30 +28,45 @@ function RootLayoutNav() {
         }} 
       />
       <Stack.Screen 
-        name="modal" 
+        name="chat"
         options={{ 
-          presentation: "modal",
           headerShown: false,
+        }} 
+      />
+      <Stack.Screen 
+        name="availability"
+        options={{ 
+          title: "Availability",
+        }} 
+      />
+      <Stack.Screen 
+        name="activity"
+        options={{ 
+          title: "Activity",
+        }} 
+      />
+      <Stack.Screen 
+        name="settings"
+        options={{ 
+          headerShown: false,
+        }} 
+      />
+      <Stack.Screen 
+        name="privacy"
+        options={{ 
+          title: "Privacy & Terms",
+        }} 
+      />
+      <Stack.Screen 
+        name="store"
+        options={{ 
+          title: "Flatly Premium",
         }} 
       />
       <Stack.Screen 
         name="admin" 
         options={{ 
           title: "Admin Panel",
-          presentation: "modal",
-        }} 
-      />
-      <Stack.Screen 
-        name="signup" 
-        options={{ 
-          title: "Sign Up",
-          presentation: "modal",
-        }} 
-      />
-      <Stack.Screen 
-        name="signin" 
-        options={{ 
-          title: "Sign In",
           presentation: "modal",
         }} 
       />

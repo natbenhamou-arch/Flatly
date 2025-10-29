@@ -169,11 +169,11 @@ const getStyles = () => StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginTop: 60,
-    paddingBottom: spacing.md,
+    marginTop: 80,
+    paddingBottom: spacing.sm,
   },
   logoContainer: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
 
   title: {
@@ -182,7 +182,7 @@ const getStyles = () => StyleSheet.create({
     color: '#2563EB',
     textAlign: 'center' as const,
     letterSpacing: 1,
-    marginBottom: 6,
+    marginBottom: 4,
     fontFamily: 'Montserrat-Bold',
   },
   subtitle: {

@@ -1,100 +1,12 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
-import { User } from '@/types';
-import { createUser, getUserById, getUsers } from './data';
-
-// Storage keys
-const AUTH_STORAGE_KEYS = {
-  SESSION_TOKEN: 'flatmatch_session_token',
-  USER_CREDENTIALS: 'flatmatch_user_credentials',
-  PROVIDER_ACCOUNTS: 'flatmatch_provider_accounts'
-} as const;
-
-// Types
-export interface UserCredentials {
-  id: string;
-  email: string;
-  hashedPassword: string;
-  createdAt: string;
-}
+import { supabase } from '@/lib/supabase';
 
 export type AuthProvider = 'apple' | 'google';
-
-export interface ProviderAccount {
-  provider: AuthProvider;
-  providerUserId: string;
-  email: string;
-  userId: string;
-  createdAt: string;
-}
 
 export interface AuthUser {
   id: string;
   email: string;
-  sessionToken: string;
 }
 
-// Crypto utilities
-class CryptoUtils {
-  // Web Crypto API implementation
-  static async hashPasswordWebCrypto(password: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  // Fallback SHA-256 implementation for environments without Web Crypto
-  static async hashPasswordFallback(password: string): Promise<string> {
-    // Simple SHA-256 implementation
-    const utf8 = new TextEncoder().encode(password);
-    let hash = 0x6a09e667;
-    let h1 = 0xbb67ae85;
-    let h2 = 0x3c6ef372;
-    let h3 = 0xa54ff53a;
-    let h4 = 0x510e527f;
-    let h5 = 0x9b05688c;
-    let h6 = 0x1f83d9ab;
-    let h7 = 0x5be0cd19;
-    
-    // This is a simplified version - in production, use a proper crypto library
-    for (let i = 0; i < utf8.length; i++) {
-      hash = ((hash << 5) - hash + utf8[i]) & 0xffffffff;
-    }
-    
-    return Math.abs(hash).toString(16).padStart(8, '0');
-  }
-
-  static async hashPassword(password: string): Promise<string> {
-    try {
-      // Try Web Crypto API first
-      if (typeof crypto !== 'undefined' && crypto.subtle) {
-        return await this.hashPasswordWebCrypto(password);
-      }
-    } catch (error) {
-      console.log('Web Crypto not available, using fallback');
-    }
-    
-    // Fallback to simple hash
-    return await this.hashPasswordFallback(password);
-  }
-
-  static generateSessionToken(): string {
-    const array = new Uint8Array(32);
-    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-      crypto.getRandomValues(array);
-    } else {
-      // Fallback for environments without crypto.getRandomValues
-      for (let i = 0; i < array.length; i++) {
-        array[i] = Math.floor(Math.random() * 256);
-      }
-    }
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-  }
-}
-
-// Password validation
 export function validatePassword(password: string): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
   
@@ -120,157 +32,129 @@ export function validatePassword(password: string): { isValid: boolean; errors: 
   };
 }
 
-// Email validation
 export function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
 
-// Credential storage
-async function getStoredCredentials(): Promise<UserCredentials[]> {
+export async function signUp(
+  email: string,
+  password: string,
+  userData: { birthdate: string; age: number; firstName?: string; lastName?: string }
+): Promise<{ success: boolean; user?: any; error?: string }> {
   try {
-    const data = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.USER_CREDENTIALS);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    console.error('Error getting stored credentials:', error);
-    return [];
-  }
-}
+    console.log('Starting Supabase sign up for:', email);
 
-async function getProviderAccounts(): Promise<ProviderAccount[]> {
-  try {
-    const data = await AsyncStorage.getItem(AUTH_STORAGE_KEYS.PROVIDER_ACCOUNTS);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    console.error('Error getting provider accounts:', error);
-    return [];
-  }
-}
-
-async function saveProviderAccounts(accounts: ProviderAccount[]): Promise<void> {
-  try {
-    await AsyncStorage.setItem(AUTH_STORAGE_KEYS.PROVIDER_ACCOUNTS, JSON.stringify(accounts));
-  } catch (error) {
-    console.error('Error saving provider accounts:', error);
-  }
-}
-
-async function saveCredentials(credentials: UserCredentials[]): Promise<void> {
-  try {
-    await AsyncStorage.setItem(AUTH_STORAGE_KEYS.USER_CREDENTIALS, JSON.stringify(credentials));
-  } catch (error) {
-    console.error('Error saving credentials:', error);
-  }
-}
-
-// Session management
-export async function saveSessionToken(token: string): Promise<void> {
-  try {
-    await AsyncStorage.setItem(AUTH_STORAGE_KEYS.SESSION_TOKEN, token);
-  } catch (error) {
-    console.error('Error saving session token:', error);
-  }
-}
-
-export async function getSessionToken(): Promise<string | null> {
-  try {
-    return await AsyncStorage.getItem(AUTH_STORAGE_KEYS.SESSION_TOKEN);
-  } catch (error) {
-    console.error('Error getting session token:', error);
-    return null;
-  }
-}
-
-export async function clearSessionToken(): Promise<void> {
-  try {
-    await AsyncStorage.removeItem(AUTH_STORAGE_KEYS.SESSION_TOKEN);
-  } catch (error) {
-    console.error('Error clearing session token:', error);
-  }
-}
-
-// Authentication functions
-export async function signUp(email: string, password: string, userData: Omit<User, 'id' | 'createdAt' | 'email'>): Promise<{ success: boolean; user?: User; error?: string }> {
-  try {
-    // Validate email
     if (!validateEmail(email)) {
       return { success: false, error: 'Invalid email format' };
     }
-    
-    // Validate password
+
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
       return { success: false, error: passwordValidation.errors.join(', ') };
     }
-    
-    // Check if email already exists
-    const existingCredentials = await getStoredCredentials();
-    if (existingCredentials.some(cred => cred.email === email)) {
-      return { success: false, error: 'Email already registered' };
-    }
-    
-    // Hash password
-    const hashedPassword = await CryptoUtils.hashPassword(password);
-    
-    // Create user
-    const user = await createUser({
-      ...userData,
-      email
-    });
-    
-    // Store credentials
-    const credentials: UserCredentials = {
-      id: user.id,
+
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
-      hashedPassword,
-      createdAt: new Date().toISOString()
+      password,
+    });
+
+    if (authError) {
+      console.error('Supabase auth error:', authError);
+      return { success: false, error: authError.message };
+    }
+
+    if (!authData.user) {
+      return { success: false, error: 'Failed to create user' };
+    }
+
+    console.log('Auth user created:', authData.user.id);
+
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id: authData.user.id,
+        email,
+        first_name: userData.firstName || '',
+        last_name: userData.lastName || '',
+        birthdate: userData.birthdate,
+        age: userData.age,
+      })
+      .select()
+      .single();
+
+    if (profileError) {
+      console.error('Profile creation error:', profileError);
+      return { success: false, error: 'Failed to create profile' };
+    }
+
+    console.log('Profile created successfully:', profileData.id);
+
+    return {
+      success: true,
+      user: {
+        id: profileData.id,
+        email: profileData.email,
+        firstName: profileData.first_name,
+        lastName: profileData.last_name,
+        birthdate: profileData.birthdate,
+        age: profileData.age,
+      },
     };
-    
-    await saveCredentials([...existingCredentials, credentials]);
-    
-    // Generate and save session token
-    const sessionToken = CryptoUtils.generateSessionToken();
-    await saveSessionToken(sessionToken);
-    
-    console.log('User signed up successfully:', user.id);
-    return { success: true, user };
-    
   } catch (error) {
     console.error('Sign up error:', error);
     return { success: false, error: 'Failed to create account' };
   }
 }
 
-export async function signIn(email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
+export async function signIn(email: string, password: string): Promise<{ success: boolean; user?: any; error?: string }> {
   try {
-    // Find user credentials
-    const credentials = await getStoredCredentials();
-    const userCredentials = credentials.find(cred => cred.email === email);
-    
-    if (!userCredentials) {
-      return { success: false, error: 'Invalid email or password' };
+    console.log('Starting Supabase sign in for:', email);
+
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError) {
+      console.error('Supabase sign in error:', authError);
+      return { success: false, error: authError.message };
     }
-    
-    // Hash provided password and compare
-    const hashedPassword = await CryptoUtils.hashPassword(password);
-    
-    if (hashedPassword !== userCredentials.hashedPassword) {
-      return { success: false, error: 'Invalid email or password' };
+
+    if (!authData.user) {
+      return { success: false, error: 'Failed to sign in' };
     }
-    
-    // Get user data
-    const user = await getUserById(userCredentials.id);
-    if (!user) {
-      return { success: false, error: 'User not found' };
+
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single();
+
+    if (profileError || !profileData) {
+      console.error('Profile fetch error:', profileError);
+      return { success: false, error: 'Failed to fetch profile' };
     }
-    
-    // Generate and save new session token
-    const sessionToken = CryptoUtils.generateSessionToken();
-    await saveSessionToken(sessionToken);
-    
-    console.log('User signed in successfully:', user.id);
-    return { success: true, user };
-    
+
+    console.log('User signed in successfully:', profileData.id);
+
+    await supabase.from('activity_logs').insert({
+      user_id: profileData.id,
+      event: 'sign_in',
+      metadata: { email },
+    });
+
+    return {
+      success: true,
+      user: {
+        id: profileData.id,
+        email: profileData.email,
+        firstName: profileData.first_name,
+        lastName: profileData.last_name,
+        birthdate: profileData.birthdate,
+        age: profileData.age,
+      },
+    };
   } catch (error) {
     console.error('Sign in error:', error);
     return { success: false, error: 'Failed to sign in' };
@@ -279,109 +163,74 @@ export async function signIn(email: string, password: string): Promise<{ success
 
 export async function signOut(): Promise<void> {
   try {
-    await clearSessionToken();
+    await supabase.auth.signOut();
     console.log('User signed out successfully');
   } catch (error) {
     console.error('Sign out error:', error);
   }
 }
 
-export async function signInWithProvider(provider: AuthProvider, opts?: { email?: string; fullName?: string }): Promise<{ success: boolean; user?: User; error?: string }> {
+export async function signInWithProvider(
+  provider: AuthProvider
+): Promise<{ success: boolean; user?: any; error?: string }> {
   try {
-    const providerUserId = `${provider}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
-    const email = (opts?.email && opts.email.includes('@'))
-      ? opts.email.toLowerCase()
-      : provider === 'apple'
-        ? `${providerUserId}@privaterelay.appleid.com`
-        : `${providerUserId}@gmail.com`;
-
-    const [accounts, users] = await Promise.all([getProviderAccounts(), getUsers()]);
-
-    const existingAccount = accounts.find(a => a.provider === provider && a.email === email);
-    if (existingAccount) {
-      const user = await getUserById(existingAccount.userId);
-      if (user) {
-        const token = CryptoUtils.generateSessionToken();
-        await saveSessionToken(token);
-        return { success: true, user };
-      }
-    }
-
-    const names = (opts?.fullName || '').trim().split(/\s+/);
-    const firstName = names[0] || '';
-    const lastName = names.length > 1 ? names.slice(1).join(' ') : '';
-
-    const placeholderUser: Omit<User, 'id' | 'createdAt'> = {
-      email,
-      firstName,
-      lastName,
-      birthdate: '2000-01-01',
-      age: 24,
-      university: '',
-      city: '',
-      geo: { lat: 0, lng: 0 },
-      hasRoom: false,
-      shortBio: '',
-      photos: [],
-      badges: [],
-    } as Omit<User, 'id' | 'createdAt'>;
-
-    const newUser = await createUser(placeholderUser);
-
-    const newAccount: ProviderAccount = {
-      provider,
-      providerUserId,
-      email,
-      userId: newUser.id,
-      createdAt: new Date().toISOString()
-    };
-
-    await saveProviderAccounts([...accounts, newAccount]);
-
-    const token = CryptoUtils.generateSessionToken();
-    await saveSessionToken(token);
-
-    return { success: true, user: newUser };
+    console.log('OAuth sign-in not yet implemented for:', provider);
+    return { success: false, error: 'OAuth coming soon' };
   } catch (error) {
     console.error('Provider sign-in error:', error);
     return { success: false, error: 'Unable to sign in with provider' };
   }
 }
 
-// Auto-restore session
-export async function restoreSession(): Promise<{ success: boolean; user?: User }> {
+export async function restoreSession(): Promise<{ success: boolean; user?: any }> {
   try {
-    const sessionToken = await getSessionToken();
-    if (!sessionToken) {
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (error || !session) {
       return { success: false };
     }
-    
-    // In a real app, you'd validate the token with a server
-    // For now, we'll just check if we have stored credentials
-    const credentials = await getStoredCredentials();
-    if (credentials.length === 0) {
-      await clearSessionToken();
+
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (profileError || !profileData) {
       return { success: false };
     }
-    
-    // For demo purposes, restore the most recent user
-    // In a real app, you'd associate the token with a specific user
-    const mostRecentCredentials = credentials.sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )[0];
-    
-    const user = await getUserById(mostRecentCredentials.id);
-    if (!user) {
-      await clearSessionToken();
-      return { success: false };
-    }
-    
-    console.log('Session restored for user:', user.id);
-    return { success: true, user };
-    
+
+    console.log('Session restored for user:', profileData.id);
+
+    return {
+      success: true,
+      user: {
+        id: profileData.id,
+        email: profileData.email,
+        firstName: profileData.first_name,
+        lastName: profileData.last_name,
+        birthdate: profileData.birthdate,
+        age: profileData.age,
+      },
+    };
   } catch (error) {
     console.error('Session restore error:', error);
-    await clearSessionToken();
     return { success: false };
+  }
+}
+
+export async function logActivity(
+  userId: string,
+  event: string,
+  metadata?: Record<string, any>
+): Promise<void> {
+  try {
+    await supabase.from('activity_logs').insert({
+      user_id: userId,
+      event,
+      metadata: metadata || {},
+    });
+  } catch (error) {
+    console.error('Error logging activity:', error);
   }
 }
