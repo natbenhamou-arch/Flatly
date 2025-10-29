@@ -2,7 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { theme, colors } from '@/constants/theme';
+import { theme, colors, spacing } from '@/constants/theme';
 import { useAppStore } from '@/store/app-store';
 import { Apple } from 'lucide-react-native';
 import { signInWithProvider } from '@/services/auth';
@@ -26,7 +26,7 @@ export default function IndexScreen() {
         if (hasCompletedOnboarding) {
           router.replace('/(tabs)/discover');
         } else {
-          router.replace('/signup');
+          router.replace('/onboarding/full-name');
         }
       }, 0);
       
@@ -41,7 +41,7 @@ export default function IndexScreen() {
       if (result.success && result.user) {
         await setCurrentUser(result.user);
         setOnboardingCompleted(false);
-        router.replace('/signup');
+        router.replace('/create-account');
       } else {
         console.log('Provider sign-in failed');
       }
@@ -55,7 +55,7 @@ export default function IndexScreen() {
   }, []);
 
   const handleSignUp = useCallback(() => {
-    router.push('/signup');
+    router.push('/create-account');
   }, []);
 
   if (isLoading) {
@@ -87,7 +87,7 @@ export default function IndexScreen() {
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <FlatlyLogo size={120} tintColor={colors.primary} />
+              <FlatlyLogo size={120} />
             </View>
             <Text style={styles.title} testID="brand-wordmark">flatly</Text>
             <Text style={styles.subtitle}>
@@ -169,12 +169,11 @@ const getStyles = () => StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginTop: 80,
-    flex: 1,
-    justifyContent: 'center',
+    marginTop: 60,
+    paddingBottom: spacing.md,
   },
   logoContainer: {
-    marginBottom: 40,
+    marginBottom: 16,
   },
 
   title: {
@@ -183,7 +182,7 @@ const getStyles = () => StyleSheet.create({
     color: '#2563EB',
     textAlign: 'center' as const,
     letterSpacing: 1,
-    marginBottom: 12,
+    marginBottom: 6,
     fontFamily: 'Montserrat-Bold',
   },
   subtitle: {
