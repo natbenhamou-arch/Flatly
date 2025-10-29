@@ -187,8 +187,11 @@ export async function restoreSession(): Promise<{ success: boolean; user?: any }
     const { data: { session }, error } = await supabase.auth.getSession();
 
     if (error || !session) {
+      console.log('No active session found');
       return { success: false };
     }
+
+    console.log('Active session found, fetching profile for user:', session.user.id);
 
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
@@ -196,25 +199,64 @@ export async function restoreSession(): Promise<{ success: boolean; user?: any }
       .eq('id', session.user.id)
       .single();
 
-    if (profileError || !profileData) {
+    if (profileError) {
+      console.error('Profile fetch error:', profileError);
       return { success: false };
     }
 
-    console.log('Session restored for user:', profileData.id);
+    if (!profileData) {
+      console.error('No profile data found');
+      return { success: false };
+    }
+
+    console.log('Session restored for user:', profileData.id, {
+      hasUniversity: !!profileData.university,
+      hasCity: !!profileData.city,
+      hasPhotos: !!profileData.photos?.length,
+      hasBio: !!profileData.short_bio,
+    });
+
+    // Map database fields to User object
+    const user = {
+      id: profileData.id,
+      email: profileData.email || session.user.email || '',
+      firstName: profileData.first_name || '',
+      lastName: profileData.last_name || '',
+      birthdate: profileData.birthdate || '',
+      age: profileData.age || 0,
+      gender: profileData.gender || undefined,
+      university: profileData.university || '',
+      city: profileData.city || '',
+      country: profileData.country || undefined,
+      geo: profileData.geo || { lat: 0, lng: 0 },
+      hasRoom: profileData.has_room || false,
+      shortBio: profileData.short_bio || '',
+      photos: profileData.photos || [],
+      videoIntroUrl: profileData.video_intro_url || undefined,
+      voiceIntroUrl: profileData.voice_intro_url || undefined,
+      igUrl: profileData.ig_url || undefined,
+      linkedinUrl: profileData.linkedin_url || undefined,
+      tiktokUrl: profileData.tiktok_url || undefined,
+      createdAt: profileData.created_at || new Date().toISOString(),
+      badges: profileData.badges || [],
+      isDemo: profileData.is_demo || false,
+      paused: profileData.paused || false,
+      walkthroughSeen: profileData.walkthrough_seen || false,
+      autoMatchMessage: profileData.auto_match_message || undefined,
+      sendAutoMatchMessage: profileData.send_auto_match_message !== false,
+      recommendationCode: profileData.recommendation_code || undefined,
+    };
 
     return {
       success: true,
-      user: {
-        id: profileData.id,
-        email: profileData.email,
-        firstName: profileData.first_name,
-        lastName: profileData.last_name,
-        birthdate: profileData.birthdate,
-        age: profileData.age,
-      },
+      user,
     };
   } catch (error) {
     console.error('Session restore error:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     return { success: false };
   }
 }

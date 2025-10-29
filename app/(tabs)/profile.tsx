@@ -82,8 +82,12 @@ export default function ProfileScreen() {
   // Load onboarding data
   useEffect(() => {
     const loadOnboardingData = async () => {
-      if (!currentUser) return;
+      if (!currentUser) {
+        console.log('Profile: No current user, skipping data load');
+        return;
+      }
       
+      console.log('Profile: Loading onboarding data for user:', currentUser.id);
       try {
         const [lifestyleData, housingData, preferencesData] = await Promise.all([
           getLifestyleByUserId(currentUser.id),
@@ -91,13 +95,22 @@ export default function ProfileScreen() {
           getPreferencesByUserId(currentUser.id)
         ]);
         
+        console.log('Profile: Loaded data successfully', {
+          hasLifestyle: !!lifestyleData,
+          hasHousing: !!housingData,
+          hasPreferences: !!preferencesData
+        });
+        
         setLifestyle(lifestyleData);
         setHousing(housingData);
         setPreferences(preferencesData);
       } catch (error) {
-        console.error('Failed to load onboarding data:', error);
-      } finally {
-        // Loading complete
+        console.error('Profile fetch error:', error);
+        if (error instanceof Error) {
+          console.error('Error message:', error.message);
+          console.error('Error stack:', error.stack);
+        }
+        showToast('Failed to load profile data', 'error');
       }
     };
     
