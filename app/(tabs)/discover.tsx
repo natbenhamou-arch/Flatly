@@ -29,7 +29,7 @@ import { displayName } from '@/utils/format';
 import { updateUser } from '@/services/data';
 import { router } from 'expo-router';
 import { useToast } from '@/components/Toast';
-import { startBots, createBotLikesForUser } from '@/services/bot';
+import { startBots, createBotLikesForUser, seedDemoBots } from '@/services/bot';
 
 export default function DiscoverScreen() {
   // Note: This screen uses tabs layout which handles safe area automatically
@@ -66,11 +66,13 @@ export default function DiscoverScreen() {
         setShowWalkthrough(true);
       }
       
-      startBots().catch(err => console.error('Failed to start bots:', err));
-      
-      createBotLikesForUser(currentUser.id, 2).catch(err => 
-        console.error('Failed to create bot likes:', err)
-      );
+      seedDemoBots().then(() => {
+        startBots().catch(err => console.error('Failed to start bots:', err));
+        
+        createBotLikesForUser(currentUser.id, 2).catch(err => 
+          console.error('Failed to create bot likes:', err)
+        );
+      }).catch(err => console.error('Failed to seed demo bots:', err));
     }
   }, [refreshFeed, hasCompletedOnboarding, currentUser]);
 
