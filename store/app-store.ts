@@ -7,7 +7,7 @@ import {
   getFeatureFlags, seedData
 } from '@/services/data';
 import { restoreSession, signOut } from '@/services/auth';
-import { setupDemoWorld } from '@/services/demo';
+import { getDemoUser, clearDemoUser, isDemoMode } from '@/services/demo';
 import { computeCompatibility } from '@/services/compatibility';
 
 
@@ -105,13 +105,22 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       console.log('Initializing FlatMatch app...');
       
-      // Try to restore session first
-      const sessionResult = await restoreSession();
-      let currentUser = sessionResult.user || null;
+      // Check if in demo mode first
+      const isDemo = await isDemoMode();
+      let currentUser = null;
       
-      // If no session, try legacy current user method
-      if (!currentUser) {
-        currentUser = await getCurrentUser();
+      if (isDemo) {
+        console.log('Demo mode enabled, loading demo user...');
+        currentUser = await getDemoUser();
+      } else {
+        // Try to restore session first
+        const sessionResult = await restoreSession();
+        currentUser = sessionResult.user || null;
+        
+        // If no session, try legacy current user method
+        if (!currentUser) {
+          currentUser = await getCurrentUser();
+        }
       }
       
       // Check if user has completed onboarding
@@ -140,13 +149,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         isLoading: false 
       });
       
-      // Prepare demo world and load initial data if user exists and has completed onboarding
+      // Load initial data if user exists and has completed onboarding
       if (currentUser && hasCompletedOnboarding) {
-        try {
-          await setupDemoWorld(currentUser.id);
-        } catch (e) {
-          console.log('Demo setup error during init', e);
-        }
         await Promise.all([
           get().refreshFeed(),
           get().loadMatches()
@@ -166,11 +170,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     
     const { hasCompletedOnboarding } = get();
     if (hasCompletedOnboarding) {
-      try {
-        await setupDemoWorld(user.id);
-      } catch (e) {
-        console.log('Demo setup error after login', e);
-      }
       await Promise.all([
         get().refreshFeed(),
         get().loadMatches()
@@ -374,11 +373,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       const { currentUser, refreshFeed, loadMatches } = get();
       if (currentUser) {
         (async () => {
-          try {
-            await setupDemoWorld(currentUser.id);
-          } catch (e) {
-            console.log('Demo setup error after onboarding', e);
-          }
           await Promise.all([
             refreshFeed(),
             loadMatches()
@@ -390,7 +384,12 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   signOut: async () => {
     try {
-      await signOut();
+      const isDemo = await isDemoMode();
+      if (isDemo) {
+        await clearDemoUser();
+      } else {
+        await signOut();
+      }
       set({ 
         currentUser: null,
         feedUsers: [],

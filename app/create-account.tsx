@@ -19,6 +19,7 @@ import { colors, spacing, radius } from '@/constants/theme';
 import { useAppStore } from '@/store/app-store';
 import { FlatlyLogo } from '@/components/FlatlyLogo';
 import { signUp } from '@/services/auth';
+import { createDemoUser, enableDemoMode } from '@/services/demo';
 
 export default function CreateAccountScreen() {
   const { setCurrentUser, setOnboardingCompleted } = useAppStore();
@@ -141,25 +142,20 @@ export default function CreateAccountScreen() {
       const age = getAge(birth);
       const iso = `${birth.getFullYear()}-${String(birth.getMonth() + 1).padStart(2,'0')}-${String(birth.getDate()).padStart(2,'0')}`;
 
-      // Create user with email/password
-      const result = await signUp(formData.email.trim(), formData.password, {
+      console.log('Creating demo account for investor demo...');
+      await enableDemoMode();
+      
+      const result = await createDemoUser(formData.email.trim(), {
         firstName: '',
         lastName: '',
         birthdate: iso,
-        age,
-        university: '',
-        city: '',
-        geo: { lat: 0, lng: 0 },
-        hasRoom: false,
-        shortBio: '',
-        photos: [],
-        badges: []
-      } as any);
+        age
+      });
 
       if (result.success && result.user) {
         await setCurrentUser(result.user);
         setOnboardingCompleted(false);
-        console.log('Account created successfully, redirecting to onboarding...');
+        console.log('Demo account created successfully, redirecting to onboarding...');
         router.replace('/onboarding/full-name');
       } else {
         Alert.alert('Error', result.error || 'Failed to create account');

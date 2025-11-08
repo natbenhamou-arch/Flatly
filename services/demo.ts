@@ -1,158 +1,104 @@
-import { 
-  getUsers, 
-  getUserById, 
-  seedDemoUsers, 
-  sendMessage,
-  getMatchesByUser,
-  likeUser,
-  createGroupMatch,
-  updateUser,
-  getMessagesByMatch
-} from '@/services/data';
-import { Message, Match, User } from '@/types';
-import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { User } from '@/types';
 
-export async function setupDemoWorld(currentUserId: string): Promise<{
-  ensuredMatch: Match | null;
-  targetUser: User | null;
-}> {
-  console.log('Demo bootstrap: start for', currentUserId);
+const DEMO_USER_KEY = '@flatly_demo_user';
+const DEMO_MODE_KEY = '@flatly_demo_mode';
+
+export async function enableDemoMode(): Promise<void> {
+  await AsyncStorage.setItem(DEMO_MODE_KEY, 'true');
+}
+
+export async function disableDemoMode(): Promise<void> {
+  await AsyncStorage.removeItem(DEMO_MODE_KEY);
+}
+
+export async function isDemoMode(): Promise<boolean> {
+  const mode = await AsyncStorage.getItem(DEMO_MODE_KEY);
+  return mode === 'true';
+}
+
+export async function createDemoUser(email: string, userData: {
+  firstName?: string;
+  lastName?: string;
+  birthdate: string;
+  age: number;
+}): Promise<{ success: boolean; user?: User; error?: string }> {
   try {
-    const currentUser = await getUserById(currentUserId);
-    if (!currentUser) throw new Error('Current user not found');
+    const demoUser: User = {
+      id: `demo_${Date.now()}`,
+      email,
+      firstName: userData.firstName || '',
+      lastName: userData.lastName || '',
+      birthdate: userData.birthdate,
+      age: userData.age,
+      gender: undefined,
+      university: '',
+      city: '',
+      country: undefined,
+      geo: { lat: 0, lng: 0 },
+      hasRoom: false,
+      shortBio: '',
+      photos: [],
+      videoIntroUrl: undefined,
+      voiceIntroUrl: undefined,
+      igUrl: undefined,
+      linkedinUrl: undefined,
+      tiktokUrl: undefined,
+      createdAt: new Date().toISOString(),
+      badges: [],
+      isDemo: true,
+      paused: false,
+      walkthroughSeen: false,
+      autoMatchMessage: undefined,
+      sendAutoMatchMessage: true,
+      recommendationCode: undefined,
+    };
 
-    const allUsers = await getUsers();
-    let cityUsers = allUsers.filter(u => u.city === currentUser.city && u.id !== currentUserId && u.isDemo === true);
-    console.log(`Demo bootstrap: found ${cityUsers.length} demo users in ${currentUser.city}`);
-
-    if (cityUsers.length < 15) {
-      console.log('Demo bootstrap: seeding more demo users...');
-      if (currentUser.city === 'Paris') {
-        await seedDemoUsers({ parisCount: 25, londonCount: 0 });
-      } else if (currentUser.city === 'London') {
-        await seedDemoUsers({ parisCount: 0, londonCount: 25 });
-      } else {
-        console.log(`Demo bootstrap: seeding for custom city ${currentUser.city}`);
-        await seedDemoUsers({ parisCount: 25, londonCount: 0 });
-        const allAfterSeed = await getUsers();
-        const seeded = allAfterSeed.filter(u => u.isDemo && u.city !== currentUser.city && u.id !== currentUserId);
-        let updated = 0;
-        for (const u of seeded.slice(0, 25)) {
-          await updateUser(u.id, { city: currentUser.city, geo: currentUser.geo });
-          updated++;
-        }
-        console.log(`Demo bootstrap: updated ${updated} users to city ${currentUser.city}`);
-      }
-      cityUsers = (await getUsers()).filter(u => u.city === currentUser.city && u.id !== currentUserId && u.isDemo === true);
-      console.log(`Demo bootstrap: after seeding, now have ${cityUsers.length} demo users in ${currentUser.city}`);
-    }
-
-    const compatibleUsers = cityUsers.filter(u => u.photos && u.photos.length > 0);
-    if (compatibleUsers.length === 0) {
-      console.log('Demo bootstrap: no compatible demo users found after seed');
-      return { ensuredMatch: null, targetUser: null };
-    }
-    let targetUser = compatibleUsers.find(u => u.university === currentUser.university) || compatibleUsers[0];
-
-    const existingMatches = await getMatchesByUser(currentUserId);
-    let match = existingMatches.find(m => m.users.includes(targetUser.id)) || null;
-
-    if (!match) {
-      console.log('Demo bootstrap: creating mutual likes...');
-      match = await likeUser(currentUserId, targetUser.id);
-      if (!match) match = await likeUser(targetUser.id, currentUserId);
-    }
-
-    if (match) {
-      await createDemoConversation(match.id, currentUserId, targetUser.id, targetUser.firstName);
-      await ensureGroupWithExtraUser(currentUserId, targetUser.id, currentUser.city);
-    }
-
-    console.log('Demo bootstrap: done', { matchId: match?.id });
-    return { ensuredMatch: match || null, targetUser: targetUser || null };
-  } catch (e) {
-    console.error('Demo bootstrap failed', e);
-    return { ensuredMatch: null, targetUser: null };
+    await AsyncStorage.setItem(DEMO_USER_KEY, JSON.stringify(demoUser));
+    
+    return { success: true, user: demoUser };
+  } catch (error) {
+    console.error('Demo user creation error:', error);
+    return { success: false, error: 'Failed to create demo user' };
   }
 }
 
-export async function runInvestorDemo(currentUserId: string): Promise<void> {
-  const result = await setupDemoWorld(currentUserId);
-  if (result.ensuredMatch) {
-    router.push(`/chat/${result.ensuredMatch.id}`);
-  }
-}
-
-async function ensureGroupWithExtraUser(currentUserId: string, targetUserId: string, city: string): Promise<void> {
+export async function getDemoUser(): Promise<User | null> {
   try {
-    const users = await getUsers();
-    const extra = users.find(u => u.isDemo && u.city === city && u.id !== currentUserId && u.id !== targetUserId);
-    if (!extra) return;
-
-    const myMatches = await getMatchesByUser(currentUserId);
-    const alreadyHasGroup = myMatches.some(m => m.users.length > 2 && m.users.includes(targetUserId));
-    if (alreadyHasGroup) return;
-
-    const groupName = `${city} Roomies`;
-    await createGroupMatch({ users: [currentUserId, targetUserId, extra.id], groupName, createdBy: currentUserId });
-    console.log('Demo bootstrap: group created with', { extra: extra.id });
-  } catch (e) {
-    console.log('Demo bootstrap: ensureGroupWithExtraUser error', e);
+    const userData = await AsyncStorage.getItem(DEMO_USER_KEY);
+    if (!userData) return null;
+    return JSON.parse(userData);
+  } catch (error) {
+    console.error('Get demo user error:', error);
+    return null;
   }
 }
 
-async function createDemoConversation(
-  matchId: string, 
-  currentUserId: string, 
-  targetUserId: string,
-  targetName: string
-): Promise<void> {
-  console.log('Creating demo conversation for match:', matchId);
-  const existingMessages = await getMessagesByMatch(matchId);
-  if (existingMessages.length > 0) {
-    console.log('Conversation already exists, skipping creation');
-    return;
-  }
-  const messages: Omit<Message, 'id' | 'createdAt'>[] = [
-    { matchId, senderId: targetUserId, body: `Hey! I saw we both go to the same university. Are you looking for housing for next semester?` },
-    { matchId, senderId: currentUserId, body: `Hi ${targetName}! Yes, I am! Are you looking for a roommate or do you have a place?` },
-    { matchId, senderId: targetUserId, body: `I'm actually looking for a roommate! I have a 2BR apartment about 10 minutes from campus. What's your budget range?` },
-    { matchId, senderId: currentUserId, body: `That sounds perfect! I'm looking at around $800-1200/month. What's the rent like?` },
-    { matchId, senderId: targetUserId, body: `It would be $950/month including utilities! The place has a great kitchen and study area. Want to set up a time to see it?` },
-    { matchId, senderId: currentUserId, body: `Absolutely! When works best for you? I'm pretty flexible this week.` }
-  ];
-  for (let i = 0; i < messages.length; i++) {
-    const created = await sendMessage(messages[i]);
-    console.log(`Created message ${i + 1}/${messages.length}:`, created.id);
-  }
-  console.log(`Created ${messages.length} demo messages`);
-}
-
-export async function hasExistingMatches(userId: string): Promise<boolean> {
-  const matches = await getMatchesByUser(userId);
-  return matches.length > 0;
-}
-
-export async function getDemoSummary(userId: string): Promise<{
-  userCity: string;
-  demoUsersInCity: number;
-  totalMatches: number;
-  hasConversations: boolean;
-}> {
-  const [currentUser, allUsers, matches] = await Promise.all([
-    getUserById(userId),
-    getUsers(),
-    getMatchesByUser(userId)
-  ]);
-  if (!currentUser) throw new Error('User not found');
-  const demoUsersInCity = allUsers.filter(u => u.city === currentUser.city && u.isDemo === true && u.id !== userId).length;
-  let hasConversations = false;
-  if (matches.length > 0) {
-    const { getMessagesByMatch } = await import('@/services/data');
-    for (const match of matches) {
-      const messages = await getMessagesByMatch(match.id);
-      if (messages.length > 0) { hasConversations = true; break; }
+export async function updateDemoUser(updates: Partial<User>): Promise<{ success: boolean; user?: User; error?: string }> {
+  try {
+    const currentUser = await getDemoUser();
+    if (!currentUser) {
+      return { success: false, error: 'No demo user found' };
     }
+
+    const updatedUser = { ...currentUser, ...updates };
+    await AsyncStorage.setItem(DEMO_USER_KEY, JSON.stringify(updatedUser));
+    
+    return { success: true, user: updatedUser };
+  } catch (error) {
+    console.error('Update demo user error:', error);
+    return { success: false, error: 'Failed to update demo user' };
   }
-  return { userCity: currentUser.city, demoUsersInCity, totalMatches: matches.length, hasConversations };
+}
+
+export async function clearDemoUser(): Promise<void> {
+  await AsyncStorage.removeItem(DEMO_USER_KEY);
+}
+
+export async function signInDemo(email: string): Promise<{ success: boolean; user?: User; error?: string }> {
+  const demoUser = await getDemoUser();
+  if (demoUser && demoUser.email === email) {
+    return { success: true, user: demoUser };
+  }
+  return { success: false, error: 'Demo user not found. Please create a new demo account.' };
 }

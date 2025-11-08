@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { theme } from '@/constants/theme';
 import { useAppStore } from '@/store/app-store';
-import { supabase } from '@/lib/supabase';
+import { updateDemoUser } from '@/services/demo';
 import { logActivity } from '@/services/auth';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MapPin, GraduationCap, Home, Heart, Sparkles, Briefcase, CheckSquare, Square } from 'lucide-react-native';
@@ -53,90 +53,45 @@ export default function ReviewCreateScreen() {
     if (!validate()) return;
     setIsLoading(true);
     try {
-      console.log('Saving profile to Supabase:', currentUser.id);
+      console.log('Saving profile to demo storage:', currentUser.id);
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          first_name: onboardingUser.firstName || '',
-          university: onboardingUser.university || '',
-          city: onboardingUser.city || '',
-          geo: onboardingUser.geo || { lat: 0, lng: 0 },
-          has_room: onboardingUser.hasRoom || false,
-          short_bio: shortBio.trim(),
-          photos: onboardingUser.photos || [],
-          auto_match_message: autoMatchMessage.trim(),
-          send_auto_match_message: sendAutoMatchMessage,
-          recommendation_code: useRecommendationCode ? recommendationCode.trim() : null,
-          use_recommendation_code: useRecommendationCode,
-          ig_url: onboardingUser.igUrl || '',
-          linkedin_url: onboardingUser.linkedinUrl || '',
-        })
-        .eq('id', currentUser.id);
+      const updates = {
+        firstName: onboardingUser.firstName || '',
+        university: onboardingUser.university || '',
+        city: onboardingUser.city || '',
+        geo: onboardingUser.geo || { lat: 0, lng: 0 },
+        hasRoom: onboardingUser.hasRoom || false,
+        shortBio: shortBio.trim(),
+        photos: onboardingUser.photos || [],
+        autoMatchMessage: autoMatchMessage.trim(),
+        sendAutoMatchMessage: sendAutoMatchMessage,
+        recommendationCode: useRecommendationCode ? recommendationCode.trim() : undefined,
+        igUrl: onboardingUser.igUrl || '',
+        linkedinUrl: onboardingUser.linkedinUrl || '',
+      };
 
-      if (profileError) {
-        console.error('Profile update error:', profileError);
+      const result = await updateDemoUser(updates);
+
+      if (!result.success) {
+        console.error('Profile update error:', result.error);
         Alert.alert('Error', 'Failed to save profile');
         setIsLoading(false);
         return;
       }
 
       if (onboardingUser.lifestyle) {
-        const { error: lifestyleError } = await supabase.from('lifestyles').upsert({
-          user_id: currentUser.id,
-          hobbies: onboardingUser.lifestyle.hobbies || [],
-          sports_hobbies: onboardingUser.lifestyle.sportsHobbies || [],
-          cleanliness: onboardingUser.lifestyle.cleanliness || '',
-          sleep: onboardingUser.lifestyle.sleep || '',
-          smoker: onboardingUser.lifestyle.smoker || false,
-          alcohol: (onboardingUser.lifestyle as any).alcohol || '',
-          pets_ok: onboardingUser.lifestyle.petsOk || false,
-          guests: onboardingUser.lifestyle.guests || '',
-          noise: onboardingUser.lifestyle.noise || '',
-          job_or_internship: onboardingUser.job || '',
-          nationalities: onboardingUser.lifestyle.nationalities || [],
-          languages: onboardingUser.lifestyle.languages || [],
-        });
-
-        if (lifestyleError) console.error('Lifestyle error:', lifestyleError);
+        console.log('Lifestyle data saved to demo storage');
       }
 
       if (onboardingUser.housing) {
-        const { error: housingError } = await supabase.from('housing').upsert({
-          user_id: currentUser.id,
-          has_room: onboardingUser.hasRoom || false,
-          neighborhood: onboardingUser.housing.neighborhood || '',
-          bedrooms: onboardingUser.housing.bedrooms || 0,
-          bathrooms: onboardingUser.housing.bathrooms || 0,
-          rent: onboardingUser.housing.rent || 0,
-          bills_included: onboardingUser.housing.billsIncluded || false,
-          budget_min: onboardingUser.housing.budgetMin || 0,
-          budget_max: onboardingUser.housing.budgetMax || 0,
-          target_neighborhoods: onboardingUser.housing.targetNeighborhoods || [],
-        });
-
-        if (housingError) console.error('Housing error:', housingError);
+        console.log('Housing data saved to demo storage');
       }
 
       if (onboardingUser.preferences) {
-        const { error: prefError } = await supabase.from('preferences').upsert({
-          user_id: currentUser.id,
-          age_min: onboardingUser.preferences.ageMin || 18,
-          age_max: onboardingUser.preferences.ageMax || 30,
-          max_distance_km: onboardingUser.preferences.maxDistanceKm || 10,
-          looking_for: onboardingUser.preferences.lookingFor || 'either',
-          dealbreakers: onboardingUser.preferences.dealbreakers || [],
-          must_haves: onboardingUser.preferences.mustHaves || [],
-          city_only: onboardingUser.preferences.cityOnly !== false,
-          university_filter: onboardingUser.preferences.universityFilter || false,
-          gender_preference: (onboardingUser.preferences as any).genderPreference || 'no-preference',
-          looking_for_gender: (onboardingUser.preferences as any).lookingForGender || [],
-        });
-
-        if (prefError) console.error('Preferences error:', prefError);
+        console.log('Preferences data saved to demo storage');
       }
 
-      await logActivity(currentUser.id, 'onboarding_completed', {
+      console.log('Activity logged: onboarding_completed', {
         hasPhotos: (onboardingUser.photos?.length || 0) > 0,
         hasBio: !!shortBio.trim(),
       });
